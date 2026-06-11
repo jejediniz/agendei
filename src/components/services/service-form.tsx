@@ -16,9 +16,14 @@ import { Card, CardContent } from "@/components/ui/card";
 type ServiceFormProps = {
   defaultValues?: ServiceFormData;
   serviceId?: string;
+  redirectTo?: string;
 };
 
-export function ServiceForm({ defaultValues, serviceId }: ServiceFormProps) {
+export function ServiceForm({
+  defaultValues,
+  serviceId,
+  redirectTo = "/servicos",
+}: ServiceFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const isEditing = !!serviceId;
@@ -52,7 +57,7 @@ export function ServiceForm({ defaultValues, serviceId }: ServiceFormProps) {
     }
 
     toast.success(isEditing ? "Serviço atualizado!" : "Serviço cadastrado!");
-    router.push("/servicos");
+    router.push(redirectTo);
     router.refresh();
   }
 

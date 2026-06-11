@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { AppointmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireSessionContext } from "@/lib/tenant/context";
+import { orgWhere } from "@/lib/tenant/prisma-scopes";
 import {
   appointmentSchema,
   appointmentStatusSchema,
@@ -24,11 +26,20 @@ export async function getAvailableSlots(
   serviceId: string,
   date: string,
 ): Promise<{ slots: string[]; error?: string }> {
+  const { organizationId } = await requireSessionContext();
+
   const service = await prisma.service.findFirst({
-    where: { id: serviceId, active: true },
+    where: { id: serviceId, active: true, ...orgWhere(organizationId) },
   });
   if (!service) {
     return { slots: [], error: "Serviço não encontrado." };
+  }
+
+  const professional = await prisma.professional.findFirst({
+    where: { id: professionalId, active: true, ...orgWhere(organizationId) },
+  });
+  if (!professional) {
+    return { slots: [], error: "Profissional não encontrado." };
   }
 
   const dayOfWeek = getDayOfWeek(new Date(date + "T12:00:00"));
@@ -45,6 +56,7 @@ export async function getAvailableSlots(
 
   const appointments = await prisma.appointment.findMany({
     where: {
+      organizationId,
       professionalId,
       startAt: { gte: dayStart, lte: dayEnd },
       status: { in: BLOCKING_STATUSES },
@@ -80,20 +92,24 @@ export async function getAvailableSlots(
 export async function createAppointment(
   data: unknown,
 ): Promise<ActionResult & { id?: string }> {
+  const { organizationId } = await requireSessionContext();
   const parsed = appointmentSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
   }
 
   const service = await prisma.service.findFirst({
-    where: { id: parsed.data.serviceId, active: true },
+    where: { id: parsed.data.serviceId, active: true, ...orgWhere(organizationId) },
   });
   const professional = await prisma.professional.findFirst({
-    where: { id: parsed.data.professionalId, active: true },
+    where: { id: parsed.data.professionalId, active: true, ...orgWhere(organizationId) },
+  });
+  const client = await prisma.client.findFirst({
+    where: { id: parsed.data.clientId, ...orgWhere(organizationId) },
   });
 
-  if (!service || !professional) {
-    return { success: false, error: "Serviço ou profissional inválido." };
+  if (!service || !professional || !client) {
+    return { success: false, error: "Dados inválidos para agendamento." };
   }
 
   const startAt = combineDateAndTime(parsed.data.date, parsed.data.time);
@@ -135,6 +151,7 @@ export async function createAppointment(
 
   const conflicting = await prisma.appointment.findMany({
     where: {
+      organizationId,
       professionalId: parsed.data.professionalId,
       status: { in: BLOCKING_STATUSES },
       startAt: { lt: endAt },
@@ -151,6 +168,7 @@ export async function createAppointment(
 
   const appointment = await prisma.appointment.create({
     data: {
+      organizationId,
       clientId: parsed.data.clientId,
       professionalId: parsed.data.professionalId,
       serviceId: parsed.data.serviceId,
@@ -178,12 +196,15 @@ export async function updateAppointmentStatus(
   id: string,
   status: AppointmentStatus,
 ): Promise<ActionResult> {
+  const { organizationId } = await requireSessionContext();
   const parsedStatus = appointmentStatusSchema.safeParse(status);
   if (!parsedStatus.success) {
     return { success: false, error: "Status inválido." };
   }
 
-  const appointment = await prisma.appointment.findUnique({ where: { id } });
+  const appointment = await prisma.appointment.findFirst({
+    where: { id, ...orgWhere(organizationId) },
+  });
   if (!appointment) {
     return { success: false, error: "Agendamento não encontrado." };
   }
@@ -199,6 +220,7 @@ export async function updateAppointmentStatus(
   ) {
     const conflicting = await prisma.appointment.findMany({
       where: {
+        organizationId,
         id: { not: id },
         professionalId: appointment.professionalId,
         status: { in: BLOCKING_STATUSES },

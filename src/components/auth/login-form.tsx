@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,12 @@ export function LoginForm() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </Button>
+          <p className="text-center text-sm text-slate-500">
+            Não tem conta?{" "}
+            <Link href="/cadastro" className="text-teal-600 hover:underline">
+              Criar conta grátis
+            </Link>
+          </p>
         </form>
       </CardContent>
     </Card>

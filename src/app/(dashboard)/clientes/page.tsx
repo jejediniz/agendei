@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getClients } from "@/lib/queries/clients";
 import { PageHeader } from "@/components/layout/page-header";
 import { ClientSearch } from "@/components/clients/client-search";
@@ -9,8 +10,9 @@ type PageProps = {
 };
 
 export default async function ClientesPage({ searchParams }: PageProps) {
+  const ctx = await requireSessionContext();
   const { q } = await searchParams;
-  const clients = await getClients(q);
+  const clients = await getClients(ctx.organizationId, q);
 
   return (
     <div className="space-y-6">

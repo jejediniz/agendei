@@ -7,18 +7,22 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getDashboardData } from "@/lib/queries/dashboard";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge } from "@/components/appointments/status-badge";
+import { SubscriptionBanner } from "@/components/billing/subscription-banner";
 import { formatDateTime } from "@/lib/utils/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const ctx = await requireSessionContext();
+  const data = await getDashboardData(ctx.organizationId);
 
   return (
     <div className="space-y-8">
+      <SubscriptionBanner />
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-500">

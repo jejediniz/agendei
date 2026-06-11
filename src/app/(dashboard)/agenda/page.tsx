@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getAppointments } from "@/lib/queries/appointments";
 import { getProfessionals } from "@/lib/queries/professionals";
 import { PageHeader } from "@/components/layout/page-header";
@@ -12,6 +13,7 @@ type PageProps = {
 };
 
 export default async function AgendaPage({ searchParams }: PageProps) {
+  const ctx = await requireSessionContext();
   const params = await searchParams;
   const date = params.data ?? format(new Date(), "yyyy-MM-dd");
   const dateLabel = format(parseISO(date), "EEEE, dd 'de' MMMM 'de' yyyy", {
@@ -19,8 +21,11 @@ export default async function AgendaPage({ searchParams }: PageProps) {
   });
 
   const [appointments, professionals] = await Promise.all([
-    getAppointments({ date, professionalId: params.profissional }),
-    getProfessionals(),
+    getAppointments(ctx.organizationId, {
+      date,
+      professionalId: params.profissional,
+    }),
+    getProfessionals(ctx.organizationId),
   ]);
 
   const filtered = appointments.filter((a) => a.status !== "CANCELLED");

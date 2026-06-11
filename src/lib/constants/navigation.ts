@@ -10,6 +10,11 @@ export const PAGE_TITLES: Record<string, string> = {
   "/agendamentos": "Agendamentos",
   "/agendamentos/novo": "Novo agendamento",
   "/agenda": "Agenda do dia",
+  "/configuracoes/negocio": "Configurações",
+  "/configuracoes/plano": "Plano e assinatura",
+  "/onboarding": "Configuração inicial",
+  "/cadastro": "Criar conta",
+  "/precos": "Preços",
 };
 
 export function getPageTitle(pathname: string): string {

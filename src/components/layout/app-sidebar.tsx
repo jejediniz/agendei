@@ -10,6 +10,7 @@ import {
   Clock,
   Calendar,
   CalendarDays,
+  Settings,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/horarios", label: "Horários", icon: Clock },
   { href: "/agendamentos", label: "Agendamentos", icon: Calendar },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/configuracoes/negocio", label: "Configurações", icon: Settings },
 ];
 
 type AppSidebarProps = {

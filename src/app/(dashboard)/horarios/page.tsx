@@ -1,3 +1,4 @@
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getProfessionals } from "@/lib/queries/professionals";
 import { getAvailabilitiesByProfessional } from "@/lib/queries/availability";
 import { PageHeader } from "@/components/layout/page-header";
@@ -8,10 +9,11 @@ type PageProps = {
 };
 
 export default async function HorariosPage({ searchParams }: PageProps) {
+  const ctx = await requireSessionContext();
   const { profissional } = await searchParams;
   const [professionals, availabilities] = await Promise.all([
-    getProfessionals(),
-    getAvailabilitiesByProfessional(profissional),
+    getProfessionals(ctx.organizationId),
+    getAvailabilitiesByProfessional(ctx.organizationId, profissional),
   ]);
 
   return (

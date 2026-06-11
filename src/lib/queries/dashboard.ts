@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { orgWhere } from "@/lib/tenant/prisma-scopes";
 import {
   getAppointmentStats,
   getTodayAppointments,
@@ -7,7 +8,7 @@ import {
 import { getActiveProfessionalsCount } from "./professionals";
 import { getActiveServicesCount } from "./services";
 
-export async function getDashboardData() {
+export async function getDashboardData(organizationId: string) {
   const [
     clientsCount,
     professionalsCount,
@@ -16,12 +17,12 @@ export async function getDashboardData() {
     todayAppointments,
     upcomingAppointments,
   ] = await Promise.all([
-    prisma.client.count(),
-    getActiveProfessionalsCount(),
-    getActiveServicesCount(),
-    getAppointmentStats(),
-    getTodayAppointments(),
-    getUpcomingAppointments(8),
+    prisma.client.count({ where: orgWhere(organizationId) }),
+    getActiveProfessionalsCount(organizationId),
+    getActiveServicesCount(organizationId),
+    getAppointmentStats(organizationId),
+    getTodayAppointments(organizationId),
+    getUpcomingAppointments(organizationId, 8),
   ]);
 
   return {

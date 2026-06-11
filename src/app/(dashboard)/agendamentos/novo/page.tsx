@@ -1,3 +1,4 @@
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getClients } from "@/lib/queries/clients";
 import { getProfessionals } from "@/lib/queries/professionals";
 import { getServices } from "@/lib/queries/services";
@@ -5,10 +6,11 @@ import { PageHeader } from "@/components/layout/page-header";
 import { AppointmentForm } from "@/components/appointments/appointment-form";
 
 export default async function NovoAgendamentoPage() {
+  const ctx = await requireSessionContext();
   const [clients, professionals, services] = await Promise.all([
-    getClients(),
-    getProfessionals(true),
-    getServices(true),
+    getClients(ctx.organizationId),
+    getProfessionals(ctx.organizationId, true),
+    getServices(ctx.organizationId, true),
   ]);
 
   return (

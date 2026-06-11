@@ -1,16 +1,24 @@
 import { prisma } from "@/lib/prisma";
+import { orgWhere } from "@/lib/tenant/prisma-scopes";
 
-export async function getProfessionals(activeOnly = false) {
+export async function getProfessionals(organizationId: string, activeOnly = false) {
   return prisma.professional.findMany({
-    where: activeOnly ? { active: true } : undefined,
+    where: {
+      ...orgWhere(organizationId),
+      ...(activeOnly ? { active: true } : {}),
+    },
     orderBy: { name: "asc" },
   });
 }
 
-export async function getProfessionalById(id: string) {
-  return prisma.professional.findUnique({ where: { id } });
+export async function getProfessionalById(organizationId: string, id: string) {
+  return prisma.professional.findFirst({
+    where: { id, ...orgWhere(organizationId) },
+  });
 }
 
-export async function getActiveProfessionalsCount() {
-  return prisma.professional.count({ where: { active: true } });
+export async function getActiveProfessionalsCount(organizationId: string) {
+  return prisma.professional.count({
+    where: { ...orgWhere(organizationId), active: true },
+  });
 }
