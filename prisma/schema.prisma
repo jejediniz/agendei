@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Client {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String
+  email        String?
+  document     String?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@index([name])
+  @@index([phone])
+  @@index([email])
+}
+
+model Professional {
+  id             String         @id @default(cuid())
+  name           String
+  phone          String?
+  email          String?
+  specialty      String?
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  availabilities Availability[]
+  appointments   Appointment[]
+
+  @@index([active])
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  durationMin  Int
+  price        Decimal       @db.Decimal(10, 2)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@index([active])
+}
+
+model Availability {
+  id             String       @id @default(cuid())
+  professionalId String
+  dayOfWeek      DayOfWeek
+  startTime      String
+  endTime        String
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, dayOfWeek, startTime, endTime])
+  @@index([professionalId, dayOfWeek, active])
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  clientId       String
+  professionalId String
+  serviceId      String
+  startAt        DateTime
+  endAt          DateTime
+  status         AppointmentStatus @default(SCHEDULED)
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  professional   Professional      @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  service        Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([professionalId, startAt, endAt])
+  @@index([startAt])
+  @@index([status])
+}

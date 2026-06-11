@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agendei
 
-## Getting Started
+Sistema web de agendamento de serviços para salões, clínicas, oficinas e consultorias. Projeto de portfólio com interface moderna em português.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router)
+- **TypeScript**
+- **Tailwind CSS 4**
+- **PostgreSQL** + **Prisma**
+- **Zod** + **React Hook Form**
+- **Auth.js** (login admin único)
+
+## Funcionalidades
+
+- Dashboard com métricas e próximos atendimentos
+- CRUD de clientes, profissionais e serviços
+- Horários disponíveis por profissional
+- Agendamentos com bloqueio de conflito de horário
+- Agenda visual do dia
+- Autenticação simples (admin)
+
+## Pré-requisitos
+
+- Node.js 20+
+- Docker (para PostgreSQL) ou instância PostgreSQL local
+
+## Configuração
+
+1. Clone o repositório e instale as dependências:
+
+```bash
+npm install
+```
+
+2. Copie o arquivo de ambiente:
+
+```bash
+cp .env.example .env
+```
+
+3. Inicie o PostgreSQL:
+
+```bash
+docker compose up -d
+```
+
+4. Execute as migrations e o seed:
+
+```bash
+npm run db:push
+npm run db:seed
+```
+
+5. Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Credenciais padrão
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **E-mail:** admin@agendei.com
+- **Senha:** admin123
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm run db:push` | Sincroniza schema com o banco |
+| `npm run db:seed` | Popula dados de demonstração |
+| `npm run db:studio` | Abre Prisma Studio |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentação
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Consulte [docs/PLANO-TECNICO.md](docs/PLANO-TECNICO.md) para a documentação técnica completa do projeto.
 
-## Deploy on Vercel
+## Estrutura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+├── app/           # Rotas (App Router)
+├── components/    # Componentes React
+├── lib/           # Actions, queries, validações, utils
+└── hooks/         # Hooks customizados
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Regra de negócio principal
+
+Um profissional não pode ter dois agendamentos ativos (marcado ou confirmado) no mesmo intervalo de horário. Agendamentos cancelados não bloqueiam o horário.
