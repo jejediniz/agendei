@@ -6,24 +6,13 @@ import { useRouter } from "next/navigation";
 import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 import type { AppointmentStatus } from "@prisma/client";
-import type {
-  Appointment,
-  Client,
-  Professional,
-  Service,
-} from "@prisma/client";
+import type { AppointmentWithRelations } from "@/lib/queries/appointments";
 import { updateAppointmentStatus } from "@/lib/actions/appointments";
 import { formatDateTime } from "@/lib/utils/date";
 import { StatusBadge } from "./status-badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
-
-type AppointmentWithRelations = Appointment & {
-  client: Client;
-  professional: Professional;
-  service: Service;
-};
 
 type AppointmentTableProps = {
   appointments: AppointmentWithRelations[];

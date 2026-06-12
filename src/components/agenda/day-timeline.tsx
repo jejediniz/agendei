@@ -1,11 +1,6 @@
 "use client";
 
-import type {
-  Appointment,
-  Client,
-  Professional,
-  Service,
-} from "@prisma/client";
+import type { AppointmentWithRelations } from "@/lib/queries/appointments";
 import {
   APPOINTMENT_STATUS_DOT_COLORS,
   APPOINTMENT_STATUS_LABELS,
@@ -13,12 +8,6 @@ import {
 import { formatTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-type AppointmentWithRelations = Appointment & {
-  client: Client;
-  professional: Professional;
-  service: Service;
-};
 
 type DayTimelineProps = {
   appointments: AppointmentWithRelations[];

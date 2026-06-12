@@ -4,7 +4,7 @@ import { orgWhere } from "@/lib/tenant/prisma-scopes";
 
 export type SerializableService = Omit<Service, "price"> & { price: number };
 
-function serializeService(service: Service): SerializableService {
+export function serializeService(service: Service): SerializableService {
   return { ...service, price: Number(service.price) };
 }
 
