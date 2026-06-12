@@ -1,6 +1,15 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import { PlatformRole, SubscriptionStatus } from "@prisma/client";
+import {
+  AccountType,
+  PlatformRole,
+  SubscriptionStatus,
+} from "@prisma/client";
+import {
+  isCustomerAppointmentsPath,
+  isPublicBookingPath,
+  parseBookingPath,
+} from "@/lib/constants/reserved-slugs";
 
 const PUBLIC_ROUTES = ["/login", "/cadastro", "/precos"];
 const PLATFORM_PREFIX = "/platform";
@@ -12,14 +21,43 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = !!req.auth;
   const user = req.auth?.user;
+  const isBookingArea = isPublicBookingPath(pathname);
+  const isCustomerAppointments = isCustomerAppointmentsPath(pathname);
 
   const isPublic =
     PUBLIC_ROUTES.includes(pathname) ||
-    pathname.startsWith("/api/webhooks/");
+    pathname.startsWith("/api/webhooks/") ||
+    isBookingArea;
+
+  if (isCustomerAppointments) {
+    if (!isLoggedIn) {
+      const signInUrl = new URL("/api/auth/signin/google", req.nextUrl);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+    if (user?.accountType !== AccountType.CUSTOMER) {
+      const slug = parseBookingPath(pathname)?.slug;
+      return NextResponse.redirect(
+        new URL(slug ? `/${slug}` : "/precos", req.nextUrl),
+      );
+    }
+  }
 
   if (!isLoggedIn) {
     if (isPublic) return NextResponse.next();
     return NextResponse.redirect(new URL("/login", req.nextUrl));
+  }
+
+  const isCustomer = user?.accountType === AccountType.CUSTOMER;
+
+  if (isCustomer) {
+    if (isBookingArea || pathname.startsWith("/api/auth")) {
+      return NextResponse.next();
+    }
+    if (pathname === "/login" || pathname === "/cadastro") {
+      return NextResponse.redirect(new URL("/precos", req.nextUrl));
+    }
+    return NextResponse.redirect(new URL("/precos", req.nextUrl));
   }
 
   const isPlatformAdmin = user?.platformRole === PlatformRole.PLATFORM_ADMIN;
@@ -28,7 +66,11 @@ export default auth((req) => {
     if (pathname === "/login" || pathname === "/cadastro") {
       return NextResponse.redirect(new URL(PLATFORM_PREFIX, req.nextUrl));
     }
-    if (pathname.startsWith(PLATFORM_PREFIX) || pathname.startsWith("/api/")) {
+    if (
+      pathname.startsWith(PLATFORM_PREFIX) ||
+      pathname.startsWith("/api/") ||
+      isBookingArea
+    ) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL(PLATFORM_PREFIX, req.nextUrl));
@@ -36,6 +78,10 @@ export default auth((req) => {
 
   if (pathname === "/login" || pathname === "/cadastro") {
     return NextResponse.redirect(new URL("/", req.nextUrl));
+  }
+
+  if (isBookingArea) {
+    return NextResponse.next();
   }
 
   if (!user?.organizationId) {

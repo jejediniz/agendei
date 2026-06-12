@@ -49,15 +49,24 @@ enum BusinessType {
   OTHER
 }
 
+enum AccountType {
+  BUSINESS
+  CUSTOMER
+}
+
 model User {
   id           String               @id @default(cuid())
   name         String
   email        String               @unique
-  passwordHash String
+  passwordHash String?
+  image        String?
+  googleId     String?              @unique
+  accountType  AccountType          @default(BUSINESS)
   platformRole PlatformRole?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   memberships  OrganizationMember[]
+  clients      Client[]
 }
 
 model Organization {
@@ -102,6 +111,7 @@ model OrganizationMember {
 model Client {
   id             String        @id @default(cuid())
   organizationId String
+  userId         String?
   name           String
   phone          String
   email          String?
@@ -110,12 +120,14 @@ model Client {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   appointments   Appointment[]
 
   @@index([organizationId])
   @@index([organizationId, name])
   @@index([organizationId, phone])
   @@index([organizationId, email])
+  @@index([userId])
 }
 
 model Professional {

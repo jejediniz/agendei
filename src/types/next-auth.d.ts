@@ -1,4 +1,5 @@
 import {
+  AccountType,
   MemberRole,
   PlatformRole,
   SubscriptionStatus,
@@ -10,6 +11,8 @@ declare module "next-auth" {
     id: string;
     name?: string | null;
     email?: string | null;
+    image?: string | null;
+    accountType?: AccountType;
     platformRole?: PlatformRole | null;
     organizationId?: string;
     organizationSlug?: string;
@@ -25,6 +28,8 @@ declare module "next-auth" {
       id: string;
       name?: string | null;
       email?: string | null;
+      image?: string | null;
+      accountType: AccountType;
       platformRole?: PlatformRole | null;
       organizationId?: string;
       organizationSlug?: string;
@@ -40,6 +45,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
+    accountType?: AccountType;
     platformRole?: PlatformRole | null;
     organizationId?: string;
     organizationSlug?: string;
@@ -48,5 +54,6 @@ declare module "next-auth/jwt" {
     subscriptionStatus?: SubscriptionStatus;
     onboardingCompleted?: boolean;
     trialEndsAt?: string;
+    picture?: string;
   }
 }
