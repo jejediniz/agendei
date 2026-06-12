@@ -5,7 +5,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { Client, Professional, Service } from "@prisma/client";
+import type { Client, Professional } from "@prisma/client";
+import type { SerializableService } from "@/lib/queries/services";
 import {
   appointmentSchema,
   type AppointmentFormData,
@@ -31,7 +32,7 @@ import { Card, CardContent } from "@/components/ui/card";
 type AppointmentFormProps = {
   clients: Client[];
   professionals: Professional[];
-  services: Service[];
+  services: SerializableService[];
 };
 
 export function AppointmentForm({
@@ -167,7 +168,7 @@ export function AppointmentForm({
                     <SelectContent>
                       {services.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
-                          {s.name} — {s.durationMin}min — {formatCurrency(s.price.toString())}
+                          {s.name} — {s.durationMin}min — {formatCurrency(s.price)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -180,7 +181,7 @@ export function AppointmentForm({
               {selectedService && (
                 <p className="text-xs text-slate-500">
                   Duração: {selectedService.durationMin} min · Preço:{" "}
-                  {formatCurrency(selectedService.price.toString())}
+                  {formatCurrency(selectedService.price)}
                 </p>
               )}
             </div>

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { Availability, Professional, Service } from "@prisma/client";
+import type { Availability, Professional } from "@prisma/client";
+import type { SerializableService } from "@/lib/queries/services";
 import {
   advanceOnboardingStep,
   completeOnboarding,
@@ -21,7 +22,7 @@ type AvailabilityWithProfessional = Availability & {
 type OnboardingWizardProps = {
   step: number;
   businessName: string;
-  services: Service[];
+  services: SerializableService[];
   professionals: Professional[];
   availabilities: AvailabilityWithProfessional[];
 };
