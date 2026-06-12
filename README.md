@@ -52,6 +52,11 @@ npm run dev
 
 Acesse [http://localhost:3000](http://localhost:3000)
 
+### Login Google (clientes)
+
+Configure `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` no `.env` (Google Cloud Console → OAuth 2.0).  
+Redirect URI: `http://localhost:3000/api/auth/callback/google`
+
 ## Credenciais de desenvolvimento
 
 | Papel | E-mail | Senha |
@@ -66,6 +71,8 @@ Acesse [http://localhost:3000](http://localhost:3000)
 | `/cadastro` | Criar conta + negócio (trial) |
 | `/login` | Entrar |
 | `/precos` | Landing de preços |
+| `/{slug}` | Agendamento público do estabelecimento (ex: `/salao-demo`) |
+| `/{slug}/meus-agendamentos` | Cliente logado (Google) vê e cancela agendamentos |
 | `/onboarding` | Configuração inicial |
 | `/configuracoes/negocio` | Dados do estabelecimento |
 | `/configuracoes/plano` | Assinatura e pagamento |
