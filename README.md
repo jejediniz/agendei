@@ -20,6 +20,24 @@ Sistema SaaS de agendamento de serviços para salões, clínicas, oficinas e con
 - Assinatura mensal via Asaas
 - CRUD completo: clientes, profissionais, serviços, horários, agendamentos
 - Dashboard e agenda visual
+- Confirmações antes de ações destrutivas
+- Loading skeletons nas páginas do painel
+
+## Capturas de tela
+
+> Adicione as imagens seguindo o guia em [docs/screenshots/README.md](docs/screenshots/README.md).
+
+| Dashboard | Agenda |
+|-----------|--------|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Agenda](docs/screenshots/agenda.png) |
+
+| Agendamentos | Clientes |
+|--------------|----------|
+| ![Agendamentos](docs/screenshots/agendamentos.png) | ![Clientes](docs/screenshots/clientes.png) |
+
+| Onboarding |
+|------------|
+| ![Onboarding](docs/screenshots/onboarding.png) |
 
 ## Setup
 
@@ -70,8 +88,9 @@ Webhook URL: `https://seu-dominio.com/api/webhooks/asaas`
 ## Branch
 
 - `main` — versão portfólio (single-tenant)
-- `feat/saas-multi-tenant` — versão SaaS comercial
+- `feat/saas-multi-tanet` — versão SaaS comercial (ativa)
 
 ## Documentação
 
 - [docs/PLANO-TECNICO.md](docs/PLANO-TECNICO.md) — plano técnico original
+- [docs/superpowers/specs/2026-06-12-fase6-polimento-design.md](docs/superpowers/specs/2026-06-12-fase6-polimento-design.md) — spec da Fase 6
