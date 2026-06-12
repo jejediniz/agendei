@@ -45,31 +45,31 @@ export function AgendaFilters({ professionals }: AgendaFiltersProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-4">
-      <div className="flex items-center gap-2">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-1">
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="space-y-2">
+        <div className="min-w-0 flex-1 space-y-2">
           <Label>Data</Label>
           <Input
             type="date"
             value={currentDate}
             onChange={(e) => updateDate(e.target.value)}
-            className="w-40"
+            className="w-full"
           />
         </div>
         <Button variant="outline" size="icon" onClick={() => navigate(1)}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 sm:col-span-2 lg:col-span-2">
         <Label>Profissional</Label>
         <Select
           defaultValue={searchParams.get("profissional") ?? "all"}
           onValueChange={updateProfessional}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

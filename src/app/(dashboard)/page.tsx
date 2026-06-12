@@ -79,9 +79,9 @@ export default async function DashboardPage() {
               data.todayAppointments.map((apt) => (
                 <div
                   key={apt.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3"
+                  className="flex flex-col gap-2 rounded-lg border border-slate-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-medium text-slate-900">{apt.client.name}</p>
                     <p className="text-sm text-slate-500">
                       {formatDateTime(apt.startAt)} · {apt.professional.name}
@@ -108,9 +108,9 @@ export default async function DashboardPage() {
               data.upcomingAppointments.map((apt) => (
                 <div
                   key={apt.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3"
+                  className="flex flex-col gap-2 rounded-lg border border-slate-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-medium text-slate-900">{apt.client.name}</p>
                     <p className="text-sm text-slate-500">
                       {formatDateTime(apt.startAt)} · {apt.service.name}
