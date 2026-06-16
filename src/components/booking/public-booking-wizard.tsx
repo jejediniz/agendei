@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { AccountType } from "@prisma/client";
 import { toast } from "sonner";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   Select,
   SelectContent,
@@ -197,15 +198,11 @@ export function PublicBookingWizard({
                 </Link>
               </Button>
             ) : (
-              <Button
-                onClick={() =>
-                  signIn("google", {
-                    callbackUrl: `/${organization.slug}/meus-agendamentos`,
-                  })
-                }
-              >
-                Entrar com Google para acompanhar
-              </Button>
+              <GoogleSignInButton
+                intent="customer"
+                callbackUrl={`/${organization.slug}/meus-agendamentos`}
+                label="Entrar com Google para acompanhar"
+              />
             )}
             <Button
               variant="outline"

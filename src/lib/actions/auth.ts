@@ -1,13 +1,61 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { MemberRole, SubscriptionStatus } from "@prisma/client";
+import { AccountType, MemberRole, SubscriptionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { registerOrganizationSchema } from "@/lib/validations/organization";
+import { registerCustomerSchema } from "@/lib/validations/auth";
+import { linkClientsToCustomerByEmail } from "@/lib/customer/link-clients";
+import {
+  BUSINESS_ON_CUSTOMER_ERROR,
+  CUSTOMER_ON_BUSINESS_ERROR,
+  isBusinessAccount,
+  isCustomerAccount,
+} from "@/lib/auth/account-guards";
 import { generateUniqueSlug, slugify } from "@/lib/utils/slug";
 import { createAsaasCustomer } from "@/lib/billing/asaas";
 import { computeTrialEndDate } from "@/lib/billing/subscription";
 import type { ActionResult } from "./clients";
+
+export async function registerCustomer(
+  data: unknown,
+): Promise<ActionResult> {
+  const parsed = registerCustomerSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message };
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    include: { memberships: { take: 1 } },
+  });
+
+  if (existingUser && isBusinessAccount(existingUser)) {
+    return {
+      success: false,
+      error: BUSINESS_ON_CUSTOMER_ERROR,
+    };
+  }
+
+  if (existingUser) {
+    return { success: false, error: "Este e-mail já está cadastrado." };
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      passwordHash,
+      accountType: AccountType.CUSTOMER,
+    },
+  });
+
+  await linkClientsToCustomerByEmail(user.id, parsed.data.email);
+
+  return { success: true };
+}
 
 export async function registerOrganization(
   data: unknown,
@@ -19,7 +67,16 @@ export async function registerOrganization(
 
   const existingUser = await prisma.user.findUnique({
     where: { email: parsed.data.email },
+    include: { memberships: { take: 1 } },
   });
+
+  if (existingUser && isCustomerAccount(existingUser)) {
+    return {
+      success: false,
+      error: CUSTOMER_ON_BUSINESS_ERROR,
+    };
+  }
+
   if (existingUser) {
     return { success: false, error: "Este e-mail já está cadastrado." };
   }

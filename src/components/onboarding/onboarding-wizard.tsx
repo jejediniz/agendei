@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import type { Availability, Professional } from "@prisma/client";
 import type { SerializableService } from "@/lib/queries/services";
@@ -9,6 +10,7 @@ import {
   advanceOnboardingStep,
   completeOnboarding,
 } from "@/lib/actions/organization";
+import { syncSessionAndNavigate } from "@/lib/auth/sync-session";
 import { ServiceForm } from "@/components/services/service-form";
 import { ProfessionalForm } from "@/components/professionals/professional-form";
 import { AvailabilityManager } from "@/components/availability/availability-manager";
@@ -42,6 +44,7 @@ export function OnboardingWizard({
   availabilities,
 }: OnboardingWizardProps) {
   const router = useRouter();
+  const { update } = useSession();
   const [currentStep, setCurrentStep] = useState(step);
   const [loading, setLoading] = useState(false);
 
@@ -62,8 +65,7 @@ export function OnboardingWizard({
     }
 
     toast.success("Configuração concluída!");
-    router.push("/");
-    router.refresh();
+    await syncSessionAndNavigate(update, "/");
   }
 
   return (
@@ -94,6 +96,22 @@ export function OnboardingWizard({
               gratuitos para explorar todas as funcionalidades.
             </p>
             <Button onClick={() => goToStep(1)}>Começar configuração</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {currentStep >= 4 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuração concluída!</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-slate-600">
+              Seu negócio já está pronto. Vamos te levar ao dashboard.
+            </p>
+            <Button onClick={() => router.push("/")} disabled={loading}>
+              Ir para o dashboard
+            </Button>
           </CardContent>
         </Card>
       )}

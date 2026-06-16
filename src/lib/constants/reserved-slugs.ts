@@ -1,6 +1,7 @@
 export const RESERVED_SLUGS = new Set([
   "login",
   "cadastro",
+  "cadastro-cliente",
   "precos",
   "onboarding",
   "platform",

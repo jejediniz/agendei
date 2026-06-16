@@ -11,7 +11,8 @@ import {
   parseBookingPath,
 } from "@/lib/constants/reserved-slugs";
 
-const PUBLIC_ROUTES = ["/login", "/cadastro", "/precos"];
+const PUBLIC_ROUTES = ["/login", "/cadastro", "/cadastro-cliente", "/precos"];
+const CUSTOMER_ALLOWED_PATHS = new Set(["/login", "/precos", "/cadastro-cliente"]);
 const PLATFORM_PREFIX = "/platform";
 const ONBOARDING_ROUTE = "/onboarding";
 const PLAN_ROUTE = "/configuracoes/plano";
@@ -51,13 +52,14 @@ export default auth((req) => {
   const isCustomer = user?.accountType === AccountType.CUSTOMER;
 
   if (isCustomer) {
-    if (isBookingArea || pathname.startsWith("/api/auth")) {
+    if (
+      isBookingArea ||
+      pathname.startsWith("/api/auth") ||
+      CUSTOMER_ALLOWED_PATHS.has(pathname)
+    ) {
       return NextResponse.next();
     }
-    if (pathname === "/login" || pathname === "/cadastro") {
-      return NextResponse.redirect(new URL("/precos", req.nextUrl));
-    }
-    return NextResponse.redirect(new URL("/precos", req.nextUrl));
+    return NextResponse.redirect(new URL("/login", req.nextUrl));
   }
 
   const isPlatformAdmin = user?.platformRole === PlatformRole.PLATFORM_ADMIN;
@@ -77,7 +79,10 @@ export default auth((req) => {
   }
 
   if (pathname === "/login" || pathname === "/cadastro") {
-    return NextResponse.redirect(new URL("/", req.nextUrl));
+    if (user?.organizationId) {
+      return NextResponse.redirect(new URL("/", req.nextUrl));
+    }
+    return NextResponse.next();
   }
 
   if (isBookingArea) {
@@ -85,7 +90,13 @@ export default auth((req) => {
   }
 
   if (!user?.organizationId) {
-    return NextResponse.redirect(new URL("/login", req.nextUrl));
+    if (
+      pathname === ONBOARDING_ROUTE ||
+      pathname.startsWith("/api/auth")
+    ) {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL(ONBOARDING_ROUTE, req.nextUrl));
   }
 
   const status = user.subscriptionStatus;

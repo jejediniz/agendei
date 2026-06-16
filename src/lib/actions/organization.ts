@@ -1,14 +1,97 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { MemberRole, SubscriptionStatus } from "@prisma/client";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   requirePlatformAdmin,
   requireSessionContext,
   requireSuperAdmin,
 } from "@/lib/tenant/context";
-import { updateOrganizationSchema } from "@/lib/validations/organization";
+import { createOrganizationSchema, updateOrganizationSchema } from "@/lib/validations/organization";
+import { generateUniqueSlug, slugify } from "@/lib/utils/slug";
+import { createAsaasCustomer } from "@/lib/billing/asaas";
+import { computeTrialEndDate } from "@/lib/billing/subscription";
 import type { ActionResult } from "./clients";
+
+export async function createOrganizationForCurrentUser(
+  data: unknown,
+): Promise<ActionResult & { organizationId?: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Faça login para continuar." };
+  }
+
+  if (session.user.organizationId) {
+    return { success: false, error: "Você já tem um negócio cadastrado." };
+  }
+
+  const parsed = createOrganizationSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message };
+  }
+
+  const existingMembership = await prisma.organizationMember.findFirst({
+    where: { userId: session.user.id },
+  });
+  if (existingMembership) {
+    return { success: false, error: "Você já tem um negócio cadastrado." };
+  }
+
+  const slug = parsed.data.slug || slugify(parsed.data.businessName);
+  const uniqueSlug = await generateUniqueSlug(slug, async (candidate) => {
+    const found = await prisma.organization.findUnique({
+      where: { slug: candidate },
+    });
+    return !!found;
+  });
+
+  const trialEndsAt = computeTrialEndDate();
+
+  const organization = await prisma.$transaction(async (tx) => {
+    const org = await tx.organization.create({
+      data: {
+        name: parsed.data.businessName,
+        slug: uniqueSlug,
+        businessType: parsed.data.businessType,
+        email: session.user.email ?? undefined,
+        subscriptionStatus: SubscriptionStatus.TRIAL,
+        trialEndsAt,
+        onboardingStep: 0,
+      },
+    });
+
+    await tx.organizationMember.create({
+      data: {
+        organizationId: org.id,
+        userId: session.user.id,
+        role: MemberRole.SUPER_ADMIN,
+      },
+    });
+
+    return org;
+  });
+
+  if (process.env.ASAAS_API_KEY) {
+    try {
+      const customer = await createAsaasCustomer({
+        name: parsed.data.businessName,
+        email: session.user.email ?? "",
+        externalReference: organization.id,
+      });
+      await prisma.organization.update({
+        where: { id: organization.id },
+        data: { asaasCustomerId: customer.id },
+      });
+    } catch {
+      // Asaas opcional em dev
+    }
+  }
+
+  revalidatePath("/onboarding");
+  return { success: true, organizationId: organization.id };
+}
 
 export async function updateOrganization(
   data: unknown,

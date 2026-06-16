@@ -6,6 +6,14 @@ import { AccountType, MemberRole, PlatformRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { expireTrials } from "@/lib/billing/subscription";
 import { linkClientsToCustomerByEmail } from "@/lib/customer/link-clients";
+import {
+  clearGoogleAuthIntent,
+  readGoogleAuthIntent,
+} from "@/lib/auth/google-intent-server";
+import {
+  isBusinessAccount,
+  isCustomerAccount,
+} from "@/lib/auth/account-guards";
 
 export type SessionUserPayload = {
   id: string;
@@ -61,7 +69,17 @@ async function loadUserSessionData(userId: string): Promise<SessionUserPayload |
   }
 
   const membership = user.memberships[0];
-  if (!membership) return null;
+  if (!membership) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      accountType: AccountType.BUSINESS,
+      platformRole: user.platformRole,
+      onboardingCompleted: false,
+    };
+  }
 
   return {
     id: user.id,
@@ -88,9 +106,56 @@ async function upsertGoogleCustomer(profile: {
 }): Promise<SessionUserPayload | null> {
   const existing = await prisma.user.findUnique({
     where: { email: profile.email },
+    include: { memberships: { take: 1 } },
   });
 
-  if (existing?.accountType === AccountType.BUSINESS) {
+  if (existing && isBusinessAccount(existing)) {
+    return null;
+  }
+
+  const user = existing
+    ? await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          googleId: profile.sub,
+          name: profile.name ?? existing.name,
+          image: profile.picture ?? existing.image,
+        },
+      })
+    : await prisma.user.create({
+        data: {
+          name: profile.name ?? profile.email,
+          email: profile.email,
+          googleId: profile.sub,
+          image: profile.picture ?? null,
+          accountType: AccountType.CUSTOMER,
+          passwordHash: null,
+        },
+      });
+
+  await linkClientsToCustomerByEmail(user.id, profile.email);
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    image: user.image,
+    accountType: AccountType.CUSTOMER,
+    platformRole: null,
+  };
+}
+
+async function upsertGoogleBusiness(profile: {
+  sub: string;
+  email: string;
+  name?: string | null;
+  picture?: string | null;
+}): Promise<SessionUserPayload | null> {
+  const existing = await prisma.user.findUnique({
+    where: { email: profile.email },
+  });
+
+  if (existing?.platformRole === PlatformRole.PLATFORM_ADMIN) {
     return null;
   }
 
@@ -103,8 +168,18 @@ async function upsertGoogleCustomer(profile: {
         email: profile.email,
         googleId: profile.sub,
         image: profile.picture ?? null,
-        accountType: AccountType.CUSTOMER,
+        accountType: AccountType.BUSINESS,
         passwordHash: null,
+      },
+    });
+  } else if (user.accountType === AccountType.CUSTOMER) {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        accountType: AccountType.BUSINESS,
+        googleId: profile.sub,
+        name: profile.name ?? user.name,
+        image: profile.picture ?? user.image,
       },
     });
   } else {
@@ -118,16 +193,7 @@ async function upsertGoogleCustomer(profile: {
     });
   }
 
-  await linkClientsToCustomerByEmail(user.id, profile.email);
-
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    image: user.image,
-    accountType: AccountType.CUSTOMER,
-    platformRole: null,
-  };
+  return loadUserSessionData(user.id);
 }
 
 function applySessionToToken(
@@ -158,6 +224,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "E-mail", type: "email" },
         password: { label: "Senha", type: "password" },
+        loginIntent: { label: "Intent", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -166,10 +233,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const email = credentials.email as string;
         const password = credentials.password as string;
+        const loginIntent = credentials.loginIntent as string | undefined;
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+          where: { email },
+          include: { memberships: { take: 1 } },
+        });
         if (!user || !user.passwordHash) return null;
-        if (user.accountType === AccountType.CUSTOMER) return null;
+
+        if (loginIntent === "customer" && isBusinessAccount(user)) {
+          return null;
+        }
+
+        if (loginIntent === "business" && isCustomerAccount(user)) {
+          return null;
+        }
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
@@ -198,16 +276,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         picture?: string;
       };
 
-      if (!googleProfile.sub || !googleProfile.email) {
+      const sub = googleProfile.sub ?? account.providerAccountId;
+      const email = googleProfile.email;
+
+      if (!sub || !email) {
         return false;
       }
 
       const existing = await prisma.user.findUnique({
-        where: { email: googleProfile.email },
+        where: { email },
+        include: { memberships: { take: 1 } },
       });
 
-      if (existing?.accountType === AccountType.BUSINESS) {
-        return "/login?error=ContaEmpresa";
+      const intent = await readGoogleAuthIntent();
+
+      if (intent === "customer") {
+        if (existing && isBusinessAccount(existing)) {
+          return "/login?area=cliente&error=ContaEmpresa";
+        }
+      } else if (existing?.platformRole === PlatformRole.PLATFORM_ADMIN) {
+        return "/login?error=ContaPlataforma";
       }
 
       return true;
@@ -215,19 +303,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, account, profile, trigger }) {
       if (account?.provider === "google" && profile) {
         const googleProfile = profile as {
-          sub: string;
-          email: string;
+          sub?: string;
+          email?: string;
           name?: string;
           picture?: string;
         };
 
-        if (googleProfile.email && googleProfile.sub) {
-          const sessionData = await upsertGoogleCustomer({
-            sub: googleProfile.sub,
-            email: googleProfile.email,
-            name: googleProfile.name,
-            picture: googleProfile.picture,
-          });
+        const sub = googleProfile.sub ?? account.providerAccountId;
+        const email = googleProfile.email;
+
+        if (email && sub) {
+          const intent = await readGoogleAuthIntent();
+          await clearGoogleAuthIntent();
+
+          const sessionData =
+            intent === "customer"
+              ? await upsertGoogleCustomer({
+                  sub,
+                  email,
+                  name: googleProfile.name,
+                  picture: googleProfile.picture,
+                })
+              : await upsertGoogleBusiness({
+                  sub,
+                  email,
+                  name: googleProfile.name,
+                  picture: googleProfile.picture,
+                });
 
           if (sessionData) {
             applySessionToToken(token, sessionData);
@@ -262,7 +364,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           | boolean
           | undefined;
         session.user.trialEndsAt = token.trialEndsAt as string | undefined;
-        session.user.image = (token.picture as string | undefined) ?? session.user.image;
+        session.user.image =
+          (token.picture as string | undefined) ?? session.user.image;
       }
       return session;
     },

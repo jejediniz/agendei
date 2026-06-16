@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { AccountType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 type PublicBookingHeaderProps = {
   slug: string;
@@ -38,15 +39,12 @@ export function PublicBookingHeader({
               </Button>
             </>
           ) : (
-            <Button
-              variant="outline"
+            <GoogleSignInButton
+              intent="customer"
+              callbackUrl={`/${slug}/meus-agendamentos`}
+              label="Entrar com Google"
               size="sm"
-              onClick={() =>
-                signIn("google", { callbackUrl: `/${slug}/meus-agendamentos` })
-              }
-            >
-              Entrar com Google
-            </Button>
+            />
           )}
           <Link
             href="/"

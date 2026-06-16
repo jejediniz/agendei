@@ -4,6 +4,7 @@ import { getSubscriptionPrice } from "@/lib/billing/asaas";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PrecosHeaderActions } from "@/components/auth/precos-header-actions";
 
 export default function PrecosPage() {
   const price = getSubscriptionPrice();
@@ -16,12 +17,7 @@ export default function PrecosPage() {
             Agendei
           </Link>
           <div className="flex gap-3">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Entrar</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/cadastro">Começar grátis</Link>
-            </Button>
+            <PrecosHeaderActions />
           </div>
         </div>
       </header>

@@ -31,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -94,12 +95,28 @@ export function RegisterForm() {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-teal-600">Criar conta</CardTitle>
+        <CardTitle className="text-2xl text-teal-600">Criar conta de negócio</CardTitle>
         <CardDescription>
-          14 dias grátis para configurar seu negócio
+          14 dias grátis para configurar agenda, serviços e equipe
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
+        <GoogleSignInButton
+          intent="business"
+          callbackUrl="/onboarding"
+          label="Começar com Google"
+          className="w-full"
+        />
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-slate-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-slate-500">ou</span>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Seu nome *</Label>
@@ -171,6 +188,15 @@ export function RegisterForm() {
             Já tem conta?{" "}
             <Link href="/login" className="text-teal-600 hover:underline">
               Entrar
+            </Link>
+          </p>
+          <p className="text-center text-sm text-slate-500">
+            É cliente?{" "}
+            <Link
+              href="/cadastro-cliente"
+              className="text-teal-600 hover:underline"
+            >
+              Criar conta de cliente
             </Link>
           </p>
         </form>

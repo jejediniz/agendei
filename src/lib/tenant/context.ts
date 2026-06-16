@@ -1,5 +1,6 @@
 import { MemberRole, PlatformRole, SubscriptionStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export type SessionContext = {
   userId: string;
@@ -19,22 +20,24 @@ export async function getSessionContext(): Promise<SessionContext | null> {
     return null;
   }
 
-  if (
-    !session.user.organizationId ||
-    !session.user.organizationSlug ||
-    !session.user.role ||
-    !session.user.subscriptionStatus
-  ) {
+  const membership = await prisma.organizationMember.findFirst({
+    where: { userId: session.user.id },
+    include: { organization: true },
+  });
+
+  if (!membership) {
     return null;
   }
 
+  const { organization } = membership;
+
   return {
     userId: session.user.id,
-    organizationId: session.user.organizationId,
-    organizationSlug: session.user.organizationSlug,
-    role: session.user.role,
-    subscriptionStatus: session.user.subscriptionStatus,
-    onboardingCompleted: session.user.onboardingCompleted ?? false,
+    organizationId: membership.organizationId,
+    organizationSlug: organization.slug,
+    role: membership.role,
+    subscriptionStatus: organization.subscriptionStatus,
+    onboardingCompleted: !!organization.onboardingCompletedAt,
     isPlatformAdmin: false,
   };
 }
