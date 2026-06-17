@@ -4,22 +4,24 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-teal-600 text-white hover:bg-teal-700",
-        destructive: "bg-rose-600 text-white hover:bg-rose-700",
+        default:
+          "bg-primary text-primary-foreground shadow-warm hover:bg-primary-hover active:scale-[0.98]",
+        destructive:
+          "bg-rose-600 text-white hover:bg-rose-700 active:scale-[0.98]",
         outline:
-          "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-        secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-        ghost: "text-slate-700 hover:bg-slate-100",
-        link: "text-teal-600 underline-offset-4 hover:underline",
+          "border border-border bg-card text-foreground hover:bg-muted",
+        secondary: "bg-muted text-foreground hover:bg-border/60",
+        ghost: "text-foreground hover:bg-muted",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-lg px-6",
+        sm: "h-8 rounded-lg px-3 text-xs",
+        lg: "h-11 rounded-xl px-6",
         icon: "h-10 w-10",
       },
     },

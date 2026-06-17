@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getProfessionalById } from "@/lib/queries/professionals";
 import { PageHeader } from "@/components/layout/page-header";
 import { ProfessionalForm } from "@/components/professionals/professional-form";
@@ -8,8 +9,9 @@ type PageProps = {
 };
 
 export default async function EditarProfissionalPage({ params }: PageProps) {
+  const ctx = await requireSessionContext();
   const { id } = await params;
-  const professional = await getProfessionalById(id);
+  const professional = await getProfessionalById(ctx.organizationId, id);
 
   if (!professional) notFound();
 

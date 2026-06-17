@@ -1,94 +1,103 @@
 # Agendei
 
-Sistema web de agendamento de serviços para salões, clínicas, oficinas e consultorias. Projeto de portfólio com interface moderna em português.
+Sistema SaaS de agendamento de serviços para salões, clínicas, oficinas e consultorias.
 
 ## Stack
 
-- **Next.js 16** (App Router)
-- **TypeScript**
-- **Tailwind CSS 4**
-- **PostgreSQL** + **Prisma**
-- **Zod** + **React Hook Form**
-- **Auth.js** (login admin único)
+- **Next.js 16** (App Router) + **TypeScript**
+- **PostgreSQL** + **Prisma 6**
+- **Auth.js** (multi-tenant)
+- **Asaas** (assinaturas)
+- **Tailwind CSS 4** + **Zod** + **React Hook Form**
 
-## Funcionalidades
+## Funcionalidades SaaS
 
-- Dashboard com métricas e próximos atendimentos
-- CRUD de clientes, profissionais e serviços
-- Horários disponíveis por profissional
-- Agendamentos com bloqueio de conflito de horário
-- Agenda visual do dia
-- Autenticação simples (admin)
+- Cadastro self-service com **14 dias de trial**
+- **Multi-tenant**: cada negócio com dados isolados
+- **Super Admin** por estabelecimento
+- **Platform Admin** para gerenciar todas as contas
+- Onboarding guiado para novos clientes
+- Assinatura mensal via Asaas
+- CRUD completo: clientes, profissionais, serviços, horários, agendamentos
+- Dashboard e agenda visual
+- Confirmações antes de ações destrutivas
+- Loading skeletons nas páginas do painel
 
-## Pré-requisitos
+## Capturas de tela
 
-- Node.js 20+
-- Docker (para PostgreSQL) ou instância PostgreSQL local
+> Adicione as imagens seguindo o guia em [docs/screenshots/README.md](docs/screenshots/README.md).
 
-## Configuração
+| Dashboard | Agenda |
+|-----------|--------|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Agenda](docs/screenshots/agenda.png) |
 
-1. Clone o repositório e instale as dependências:
+| Agendamentos | Clientes |
+|--------------|----------|
+| ![Agendamentos](docs/screenshots/agendamentos.png) | ![Clientes](docs/screenshots/clientes.png) |
+
+| Onboarding |
+|------------|
+| ![Onboarding](docs/screenshots/onboarding.png) |
+
+## Setup
 
 ```bash
 npm install
-```
-
-2. Copie o arquivo de ambiente:
-
-```bash
 cp .env.example .env
-```
-
-3. Inicie o PostgreSQL:
-
-```bash
 docker compose up -d
-```
-
-4. Execute as migrations e o seed:
-
-```bash
 npm run db:push
 npm run db:seed
-```
-
-5. Inicie o servidor de desenvolvimento:
-
-```bash
 npm run dev
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000).
+Acesse [http://localhost:3000](http://localhost:3000)
 
-## Credenciais padrão
+### Login Google (clientes)
 
-- **E-mail:** admin@agendei.com
-- **Senha:** admin123
+Configure `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` no `.env` (Google Cloud Console → OAuth 2.0).  
+Redirect URI: `http://localhost:3000/api/auth/callback/google`
 
-## Scripts
+## Credenciais de desenvolvimento
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Servidor de desenvolvimento |
-| `npm run build` | Build de produção |
-| `npm run db:push` | Sincroniza schema com o banco |
-| `npm run db:seed` | Popula dados de demonstração |
-| `npm run db:studio` | Abre Prisma Studio |
+| Papel | E-mail | Senha |
+|-------|--------|-------|
+| Platform Admin | platform@agendei.com | platform123 |
+| Super Admin (demo) | admin@agendei.com | admin123 |
+
+## Rotas principais
+
+| Rota | Descrição |
+|------|-----------|
+| `/cadastro` | Criar conta + negócio (trial) |
+| `/login` | Entrar |
+| `/precos` | Landing de preços |
+| `/{slug}` | Agendamento público do estabelecimento (ex: `/salao-demo`) |
+| `/{slug}/meus-agendamentos` | Cliente logado (Google) vê e cancela agendamentos |
+| `/onboarding` | Configuração inicial |
+| `/configuracoes/negocio` | Dados do estabelecimento |
+| `/configuracoes/plano` | Assinatura e pagamento |
+| `/platform` | Painel da plataforma |
+
+## Asaas (sandbox)
+
+Configure no `.env`:
+
+```
+ASAAS_API_KEY=sua_chave_sandbox
+ASAAS_WEBHOOK_TOKEN=token_secreto
+ASAAS_ENV=sandbox
+SUBSCRIPTION_PRICE=79.00
+TRIAL_DAYS=14
+```
+
+Webhook URL: `https://seu-dominio.com/api/webhooks/asaas`
+
+## Branch
+
+- `main` — versão portfólio (single-tenant)
+- `feat/saas-multi-tanet` — versão SaaS comercial (ativa)
 
 ## Documentação
 
-Consulte [docs/PLANO-TECNICO.md](docs/PLANO-TECNICO.md) para a documentação técnica completa do projeto.
-
-## Estrutura
-
-```
-src/
-├── app/           # Rotas (App Router)
-├── components/    # Componentes React
-├── lib/           # Actions, queries, validações, utils
-└── hooks/         # Hooks customizados
-```
-
-## Regra de negócio principal
-
-Um profissional não pode ter dois agendamentos ativos (marcado ou confirmado) no mesmo intervalo de horário. Agendamentos cancelados não bloqueiam o horário.
+- [docs/PLANO-TECNICO.md](docs/PLANO-TECNICO.md) — plano técnico original
+- [docs/superpowers/specs/2026-06-12-fase6-polimento-design.md](docs/superpowers/specs/2026-06-12-fase6-polimento-design.md) — spec da Fase 6

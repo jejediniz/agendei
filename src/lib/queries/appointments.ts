@@ -1,17 +1,51 @@
-import { AppointmentStatus, Prisma } from "@prisma/client";
+import {
+  AppointmentStatus,
+  type Appointment,
+  type Client,
+  type Professional,
+  type Service,
+  Prisma,
+} from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getTodayRange } from "@/lib/utils/date";
+import { orgWhere } from "@/lib/tenant/prisma-scopes";
+import { getTodayRange, getDayRange } from "@/lib/utils/date";
+import {
+  type SerializableService,
+  serializeService,
+} from "@/lib/queries/services";
 
-export async function getAppointments(filters?: {
-  date?: string;
-  professionalId?: string;
-  status?: AppointmentStatus;
-}) {
-  const where: Prisma.AppointmentWhereInput = {};
+export type AppointmentWithRelations = Appointment & {
+  client: Client;
+  professional: Professional;
+  service: SerializableService;
+};
+
+type PrismaAppointmentWithRelations = Appointment & {
+  client: Client;
+  professional: Professional;
+  service: Service;
+};
+
+export function serializeAppointment(
+  appointment: PrismaAppointmentWithRelations,
+): AppointmentWithRelations {
+  return { ...appointment, service: serializeService(appointment.service) };
+}
+
+export async function getAppointments(
+  organizationId: string,
+  filters?: {
+    date?: string;
+    professionalId?: string;
+    status?: AppointmentStatus;
+  },
+): Promise<AppointmentWithRelations[]> {
+  const where: Prisma.AppointmentWhereInput = {
+    ...orgWhere(organizationId),
+  };
 
   if (filters?.date) {
-    const start = new Date(filters.date + "T00:00:00");
-    const end = new Date(filters.date + "T23:59:59");
+    const { start, end } = getDayRange(filters.date);
     where.startAt = { gte: start, lte: end };
   }
 
@@ -23,7 +57,7 @@ export async function getAppointments(filters?: {
     where.status = filters.status;
   }
 
-  return prisma.appointment.findMany({
+  const appointments = await prisma.appointment.findMany({
     where,
     include: {
       client: true,
@@ -32,12 +66,17 @@ export async function getAppointments(filters?: {
     },
     orderBy: { startAt: "asc" },
   });
+
+  return appointments.map(serializeAppointment);
 }
 
-export async function getTodayAppointments() {
+export async function getTodayAppointments(
+  organizationId: string,
+): Promise<AppointmentWithRelations[]> {
   const { start, end } = getTodayRange();
-  return prisma.appointment.findMany({
+  const appointments = await prisma.appointment.findMany({
     where: {
+      ...orgWhere(organizationId),
       startAt: { gte: start, lte: end },
       status: { not: AppointmentStatus.CANCELLED },
     },
@@ -48,13 +87,21 @@ export async function getTodayAppointments() {
     },
     orderBy: { startAt: "asc" },
   });
+
+  return appointments.map(serializeAppointment);
 }
 
-export async function getUpcomingAppointments(limit = 5) {
-  return prisma.appointment.findMany({
+export async function getUpcomingAppointments(
+  organizationId: string,
+  limit = 5,
+): Promise<AppointmentWithRelations[]> {
+  const appointments = await prisma.appointment.findMany({
     where: {
+      ...orgWhere(organizationId),
       startAt: { gte: new Date() },
-      status: { in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED] },
+      status: {
+        in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+      },
     },
     include: {
       client: true,
@@ -64,23 +111,32 @@ export async function getUpcomingAppointments(limit = 5) {
     orderBy: { startAt: "asc" },
     take: limit,
   });
+
+  return appointments.map(serializeAppointment);
 }
 
-export async function getAppointmentStats() {
+export async function getAppointmentStats(organizationId: string) {
   const { start, end } = getTodayRange();
 
   const [todayCount, confirmedCount, cancelledCount] = await Promise.all([
     prisma.appointment.count({
       where: {
+        ...orgWhere(organizationId),
         startAt: { gte: start, lte: end },
         status: { not: AppointmentStatus.CANCELLED },
       },
     }),
     prisma.appointment.count({
-      where: { status: AppointmentStatus.CONFIRMED },
+      where: {
+        ...orgWhere(organizationId),
+        status: AppointmentStatus.CONFIRMED,
+      },
     }),
     prisma.appointment.count({
-      where: { status: AppointmentStatus.CANCELLED },
+      where: {
+        ...orgWhere(organizationId),
+        status: AppointmentStatus.CANCELLED,
+      },
     }),
   ]);
 

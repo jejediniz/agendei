@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getClientById } from "@/lib/queries/clients";
 import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "@/components/clients/client-form";
@@ -8,8 +9,9 @@ type PageProps = {
 };
 
 export default async function EditarClientePage({ params }: PageProps) {
+  const ctx = await requireSessionContext();
   const { id } = await params;
-  const client = await getClientById(id);
+  const client = await getClientById(ctx.organizationId, id);
 
   if (!client) notFound();
 

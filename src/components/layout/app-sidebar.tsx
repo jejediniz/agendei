@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -10,6 +11,8 @@ import {
   Clock,
   Calendar,
   CalendarDays,
+  Settings,
+  CreditCard,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -22,7 +25,12 @@ const navItems = [
   { href: "/servicos", label: "Serviços", icon: Scissors },
   { href: "/horarios", label: "Horários", icon: Clock },
   { href: "/agendamentos", label: "Agendamentos", icon: Calendar },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/agenda", label: "Agenda do dia", icon: CalendarDays },
+];
+
+const settingsItems = [
+  { href: "/configuracoes/negocio", label: "Negócio", icon: Settings },
+  { href: "/configuracoes/plano", label: "Plano", icon: CreditCard },
 ];
 
 type AppSidebarProps = {
@@ -32,11 +40,24 @@ type AppSidebarProps = {
 
 export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const pathname = usePathname();
+  const isSettingsActive = pathname.startsWith("/configuracoes");
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
 
   const content = (
     <>
-      <div className="flex h-16 items-center justify-between border-b border-slate-200 px-6">
-        <Link href="/" className="text-xl font-bold text-teal-600">
+      <div className="flex h-14 min-h-14 items-center justify-between border-b border-border/60 px-4 pt-safe sm:h-16 sm:px-6">
+        <Link
+          href="/"
+          className="font-display text-xl font-semibold tracking-tight text-primary"
+        >
           Agendei
         </Link>
         {onMobileClose && (
@@ -50,46 +71,76 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
           </Button>
         )}
       </div>
-      <nav className="flex-1 space-y-1 p-4">
-        {navItems.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onMobileClose}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-teal-50 text-teal-700"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 space-y-4 overflow-y-auto p-3">
+        <div className="space-y-0.5">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onMobileClose}
+                className={cn(
+                  "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "border-l-[3px] border-primary bg-primary-light text-primary-dark"
+                    : "border-l-[3px] border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div>
+          <p className="mb-1 px-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            Configurações
+          </p>
+          <div className="space-y-0.5">
+            {settingsItems.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onMobileClose}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                    isActive || (isSettingsActive && isActive)
+                      ? "border-l-[3px] border-primary bg-primary-light text-primary-dark"
+                      : "border-l-[3px] border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </nav>
     </>
   );
 
   return (
     <>
-      <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
+      <aside className="hidden w-64 flex-col border-r border-border/60 bg-surface lg:flex">
         {content}
       </aside>
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-foreground/30 backdrop-blur-sm"
             onClick={onMobileClose}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col bg-white shadow-xl">
+          <aside className="absolute left-0 top-0 flex h-full w-[min(18rem,85vw)] flex-col bg-surface pb-safe shadow-warm-lg">
             {content}
           </aside>
         </div>

@@ -1,56 +1,90 @@
-import { PrismaClient, DayOfWeek, AppointmentStatus } from "@prisma/client";
+import {
+  PrismaClient,
+  DayOfWeek,
+  AppointmentStatus,
+  MemberRole,
+  PlatformRole,
+  SubscriptionStatus,
+  BusinessType,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, addMinutes, setHours, setMinutes } from "date-fns";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL ?? "admin@agendei.com";
-  const password = process.env.ADMIN_PASSWORD ?? "admin123";
-  const name = process.env.ADMIN_NAME ?? "Administrador";
+  const platformEmail = process.env.PLATFORM_ADMIN_EMAIL ?? "platform@agendei.com";
+  const platformPassword = process.env.PLATFORM_ADMIN_PASSWORD ?? "platform123";
+  const demoEmail = process.env.ADMIN_EMAIL ?? "admin@agendei.com";
+  const demoPassword = process.env.ADMIN_PASSWORD ?? "admin123";
 
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  await prisma.user.upsert({
-    where: { email },
-    update: {},
-    create: { email, name, passwordHash },
-  });
-
-  await prisma.client.deleteMany();
   await prisma.appointment.deleteMany();
   await prisma.availability.deleteMany();
+  await prisma.client.deleteMany();
   await prisma.professional.deleteMany();
   await prisma.service.deleteMany();
+  await prisma.organizationMember.deleteMany();
+  await prisma.organization.deleteMany();
+  await prisma.user.deleteMany();
+
+  const platformHash = await bcrypt.hash(platformPassword, 10);
+  const demoHash = await bcrypt.hash(demoPassword, 10);
+
+  await prisma.user.create({
+    data: {
+      name: "Platform Admin",
+      email: platformEmail,
+      passwordHash: platformHash,
+      platformRole: PlatformRole.PLATFORM_ADMIN,
+    },
+  });
+
+  const trialEndsAt = addDays(new Date(), 14);
+
+  const organization = await prisma.organization.create({
+    data: {
+      name: "Salão Demonstração",
+      slug: "salao-demo",
+      businessType: BusinessType.SALON,
+      email: demoEmail,
+      subscriptionStatus: SubscriptionStatus.TRIAL,
+      trialEndsAt,
+      onboardingCompletedAt: new Date(),
+      onboardingStep: 4,
+    },
+  });
+
+  const demoUser = await prisma.user.create({
+    data: {
+      name: "Administrador Demo",
+      email: demoEmail,
+      passwordHash: demoHash,
+    },
+  });
+
+  await prisma.organizationMember.create({
+    data: {
+      organizationId: organization.id,
+      userId: demoUser.id,
+      role: MemberRole.SUPER_ADMIN,
+    },
+  });
 
   const clients = await Promise.all([
     prisma.client.create({
       data: {
+        organizationId: organization.id,
         name: "Ana Silva",
         phone: "(11) 98765-4321",
         email: "ana.silva@email.com",
-        document: "123.456.789-00",
       },
     }),
     prisma.client.create({
       data: {
+        organizationId: organization.id,
         name: "Carlos Oliveira",
         phone: "(11) 97654-3210",
         email: "carlos@email.com",
-      },
-    }),
-    prisma.client.create({
-      data: {
-        name: "Mariana Costa",
-        phone: "(11) 96543-2109",
-        notes: "Prefere atendimento pela manhã",
-      },
-    }),
-    prisma.client.create({
-      data: {
-        name: "João Pereira",
-        phone: "(11) 95432-1098",
-        email: "joao@email.com",
       },
     }),
   ]);
@@ -58,25 +92,16 @@ async function main() {
   const professionals = await Promise.all([
     prisma.professional.create({
       data: {
+        organizationId: organization.id,
         name: "Juliana Santos",
-        phone: "(11) 91234-5678",
-        email: "juliana@agendei.com",
         specialty: "Cabeleireira",
       },
     }),
     prisma.professional.create({
       data: {
+        organizationId: organization.id,
         name: "Roberto Lima",
-        phone: "(11) 92345-6789",
-        email: "roberto@agendei.com",
         specialty: "Barbeiro",
-      },
-    }),
-    prisma.professional.create({
-      data: {
-        name: "Fernanda Alves",
-        specialty: "Manicure",
-        active: true,
       },
     }),
   ]);
@@ -84,34 +109,18 @@ async function main() {
   const services = await Promise.all([
     prisma.service.create({
       data: {
+        organizationId: organization.id,
         name: "Corte feminino",
-        description: "Corte e finalização",
         durationMin: 60,
         price: 80,
       },
     }),
     prisma.service.create({
       data: {
+        organizationId: organization.id,
         name: "Corte masculino",
-        description: "Corte tradicional",
         durationMin: 30,
         price: 45,
-      },
-    }),
-    prisma.service.create({
-      data: {
-        name: "Manicure",
-        description: "Cutilagem e esmaltação",
-        durationMin: 45,
-        price: 35,
-      },
-    }),
-    prisma.service.create({
-      data: {
-        name: "Coloração",
-        description: "Coloração completa",
-        durationMin: 120,
-        price: 180,
       },
     }),
   ]);
@@ -139,33 +148,23 @@ async function main() {
   }
 
   const tomorrow = addDays(new Date(), 1);
-  const appointmentDate = setMinutes(setHours(tomorrow, 10), 0);
+  const apt1 = setMinutes(setHours(tomorrow, 10), 0);
 
   await prisma.appointment.create({
     data: {
+      organizationId: organization.id,
       clientId: clients[0].id,
       professionalId: professionals[0].id,
       serviceId: services[0].id,
-      startAt: appointmentDate,
-      endAt: addMinutes(appointmentDate, 60),
+      startAt: apt1,
+      endAt: addMinutes(apt1, 60),
       status: AppointmentStatus.CONFIRMED,
     },
   });
 
-  const apt2Start = setMinutes(setHours(tomorrow, 14), 0);
-  await prisma.appointment.create({
-    data: {
-      clientId: clients[1].id,
-      professionalId: professionals[1].id,
-      serviceId: services[1].id,
-      startAt: apt2Start,
-      endAt: addMinutes(apt2Start, 30),
-      status: AppointmentStatus.SCHEDULED,
-    },
-  });
-
-  console.log("Seed concluído com sucesso!");
-  console.log(`Admin: ${email} / ${password}`);
+  console.log("Seed SaaS concluído!");
+  console.log(`Platform Admin: ${platformEmail} / ${platformPassword}`);
+  console.log(`Demo Super Admin: ${demoEmail} / ${demoPassword}`);
 }
 
 main()

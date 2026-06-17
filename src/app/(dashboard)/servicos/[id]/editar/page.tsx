@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getServiceById } from "@/lib/queries/services";
 import { PageHeader } from "@/components/layout/page-header";
 import { ServiceForm } from "@/components/services/service-form";
@@ -8,8 +9,9 @@ type PageProps = {
 };
 
 export default async function EditarServicoPage({ params }: PageProps) {
+  const ctx = await requireSessionContext();
   const { id } = await params;
-  const service = await getServiceById(id);
+  const service = await getServiceById(ctx.organizationId, id);
 
   if (!service) notFound();
 
@@ -25,7 +27,7 @@ export default async function EditarServicoPage({ params }: PageProps) {
           name: service.name,
           description: service.description ?? "",
           durationMin: service.durationMin,
-          price: Number(service.price),
+          price: service.price,
           active: service.active,
         }}
       />

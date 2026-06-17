@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 import { toast } from "sonner";
-import type { Client, Professional, Service } from "@prisma/client";
+import type { Client, Professional } from "@prisma/client";
+import type { SerializableService } from "@/lib/queries/services";
 import {
   appointmentSchema,
   type AppointmentFormData,
@@ -16,7 +18,6 @@ import {
 } from "@/lib/actions/appointments";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -27,11 +28,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { AgendaWeekStrip } from "@/components/agenda/agenda-week-strip";
+import { ProfessionalSlotTimeGrid } from "@/components/booking/professional-slot-time-grid";
 
 type AppointmentFormProps = {
   clients: Client[];
   professionals: Professional[];
-  services: Service[];
+  services: SerializableService[];
 };
 
 export function AppointmentForm({
@@ -41,7 +44,7 @@ export function AppointmentForm({
 }: AppointmentFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [slots, setSlots] = useState<string[]>([]);
+  const [slotsByProfessional, setSlotsByProfessional] = useState<Record<string, string[]>>({});
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const {
@@ -66,25 +69,43 @@ export function AppointmentForm({
   const professionalId = watch("professionalId");
   const serviceId = watch("serviceId");
   const date = watch("date");
+  const time = watch("time");
   const selectedService = services.find((s) => s.id === serviceId);
 
   useEffect(() => {
     async function loadSlots() {
-      if (!professionalId || !serviceId || !date) {
-        setSlots([]);
+      if (!serviceId || !date) {
+        setSlotsByProfessional({});
         return;
       }
       setLoadingSlots(true);
-      const result = await getAvailableSlots(professionalId, serviceId, date);
+      const results = await Promise.all(
+        professionals
+          .filter((p) => p.active)
+          .map(async (professional) => {
+            const result = await getAvailableSlots(
+              professional.id,
+              serviceId,
+              date,
+            );
+            return { professionalId: professional.id, slots: result.slots };
+          }),
+      );
       setLoadingSlots(false);
-      setSlots(result.slots);
-      if (result.error && result.slots.length === 0) {
-        toast.error(result.error);
+
+      const map: Record<string, string[]> = {};
+      for (const result of results) {
+        map[result.professionalId] = result.slots;
       }
-      setValue("time", "");
+      setSlotsByProfessional(map);
+
+      if (professionalId && time && !(map[professionalId]?.includes(time))) {
+        setValue("professionalId", "");
+        setValue("time", "");
+      }
     }
     loadSlots();
-  }, [professionalId, serviceId, date, setValue]);
+  }, [serviceId, date, professionals, setValue, professionalId, time]);
 
   async function onSubmit(data: AppointmentFormData) {
     setLoading(true);
@@ -104,7 +125,7 @@ export function AppointmentForm({
   return (
     <Card>
       <CardContent className="p-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Cliente *</Label>
@@ -131,43 +152,26 @@ export function AppointmentForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label>Profissional *</Label>
-              <Controller
-                name="professionalId"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o profissional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {professionals.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.professionalId && (
-                <p className="text-sm text-rose-600">{errors.professionalId.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
               <Label>Serviço *</Label>
               <Controller
                 name="serviceId"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setValue("professionalId", "");
+                      setValue("time", "");
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o serviço" />
                     </SelectTrigger>
                     <SelectContent>
                       {services.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
-                          {s.name} — {s.durationMin}min — {formatCurrency(s.price.toString())}
+                          {s.name} — {s.durationMin}min — {formatCurrency(s.price)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -178,65 +182,77 @@ export function AppointmentForm({
                 <p className="text-sm text-rose-600">{errors.serviceId.message}</p>
               )}
               {selectedService && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Duração: {selectedService.durationMin} min · Preço:{" "}
-                  {formatCurrency(selectedService.price.toString())}
+                  {formatCurrency(selectedService.price)}
                 </p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">Data *</Label>
-              <Input id="date" type="date" {...register("date")} />
-              {errors.date && (
-                <p className="text-sm text-rose-600">{errors.date.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Horário *</Label>
-              <Controller
-                name="time"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={loadingSlots || slots.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          loadingSlots
-                            ? "Carregando horários..."
-                            : slots.length === 0
-                              ? "Selecione profissional, serviço e data"
-                              : "Selecione o horário"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {slots.map((slot) => (
-                        <SelectItem key={slot} value={slot}>
-                          {slot}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.time && (
-                <p className="text-sm text-rose-600">{errors.time.message}</p>
-              )}
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="notes">Observações</Label>
-              <Textarea id="notes" rows={2} {...register("notes")} />
-            </div>
           </div>
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" disabled={loading}>
+
+          <div className="space-y-4">
+            <Label>Data, profissional e horário *</Label>
+            {!serviceId ? (
+              <p className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                Selecione o serviço para escolher data e horário.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <AgendaWeekStrip
+                  selectedDate={date || format(new Date(), "yyyy-MM-dd")}
+                  onDateChange={(value) => {
+                    setValue("date", value, { shouldValidate: true });
+                    setValue("professionalId", "");
+                    setValue("time", "");
+                  }}
+                />
+                {!date ? (
+                  <p className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                    Selecione uma data acima.
+                  </p>
+                ) : (
+                  <ProfessionalSlotTimeGrid
+                    professionals={professionals}
+                    slotsByProfessional={slotsByProfessional}
+                    loading={loadingSlots}
+                    selectedProfessionalId={professionalId}
+                    selectedTime={time}
+                    onSelect={(proId, slot) => {
+                      setValue("professionalId", proId, { shouldValidate: true });
+                      setValue("time", slot, { shouldValidate: true });
+                    }}
+                  />
+                )}
+                {errors.date && (
+                  <p className="text-sm text-rose-600">{errors.date.message}</p>
+                )}
+                {errors.professionalId && (
+                  <p className="text-sm text-rose-600">
+                    {errors.professionalId.message}
+                  </p>
+                )}
+                {errors.time && (
+                  <p className="text-sm text-rose-600">{errors.time.message}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea id="notes" rows={2} {...register("notes")} />
+          </div>
+
+          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading ? "Agendando..." : "Criar agendamento"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => router.back()}
+            >
               Cancelar
             </Button>
           </div>

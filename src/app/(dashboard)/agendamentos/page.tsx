@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AppointmentStatus } from "@prisma/client";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getAppointments } from "@/lib/queries/appointments";
 import { getProfessionals } from "@/lib/queries/professionals";
 import { PageHeader } from "@/components/layout/page-header";
@@ -15,14 +16,15 @@ type PageProps = {
 };
 
 export default async function AgendamentosPage({ searchParams }: PageProps) {
+  const ctx = await requireSessionContext();
   const params = await searchParams;
   const [appointments, professionals] = await Promise.all([
-    getAppointments({
+    getAppointments(ctx.organizationId, {
       date: params.data,
       professionalId: params.profissional,
       status: params.status as AppointmentStatus | undefined,
     }),
-    getProfessionals(),
+    getProfessionals(ctx.organizationId),
   ]);
 
   return (

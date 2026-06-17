@@ -18,11 +18,13 @@ import { Card, CardContent } from "@/components/ui/card";
 type ProfessionalFormProps = {
   defaultValues?: ProfessionalFormData;
   professionalId?: string;
+  redirectTo?: string;
 };
 
 export function ProfessionalForm({
   defaultValues,
   professionalId,
+  redirectTo = "/profissionais",
 }: ProfessionalFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -57,7 +59,7 @@ export function ProfessionalForm({
     }
 
     toast.success(isEditing ? "Profissional atualizado!" : "Profissional cadastrado!");
-    router.push("/profissionais");
+    router.push(redirectTo);
     router.refresh();
   }
 
@@ -96,7 +98,7 @@ export function ProfessionalForm({
                       id="active"
                       checked={field.value}
                       onChange={field.onChange}
-                      className="h-4 w-4 rounded border-slate-300 text-teal-600"
+                      className="h-4 w-4 rounded border-border text-primary"
                     />
                   )}
                 />
