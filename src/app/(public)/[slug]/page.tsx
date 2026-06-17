@@ -52,10 +52,10 @@ export default async function PublicBookingPage({ params }: PageProps) {
   return (
     <PublicBookingLayout slug={slug} organizationName={organization.name}>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-900">
+        <h1 className="text-2xl font-semibold text-foreground">
           Agendar com {organization.name}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Escolha o serviço, profissional e horário de sua preferência.
         </p>
       </div>

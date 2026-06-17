@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { AccountType } from "@prisma/client";
 import { toast } from "sonner";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
 import type { Professional } from "@prisma/client";
 import type { SerializableService } from "@/lib/queries/services";
 import type { PublicOrganization } from "@/lib/queries/public-booking";
@@ -27,13 +28,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AgendaWeekStrip } from "@/components/agenda/agenda-week-strip";
+import { ProfessionalSlotTimeGrid } from "@/components/booking/professional-slot-time-grid";
 import { cn } from "@/lib/utils/cn";
 
 type CustomerSession = {
@@ -50,7 +46,7 @@ type PublicBookingWizardProps = {
   customerSession?: CustomerSession;
 };
 
-const STEPS = ["Serviço", "Profissional", "Data e horário", "Seus dados"];
+const STEPS = ["Serviço", "Data e horário", "Seus dados"];
 
 export function PublicBookingWizard({
   organization,
@@ -64,7 +60,7 @@ export function PublicBookingWizard({
   const [step, setStep] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [slots, setSlots] = useState<string[]>([]);
+  const [slotsByProfessional, setSlotsByProfessional] = useState<Record<string, string[]>>({});
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     serviceName: string;
@@ -90,6 +86,7 @@ export function PublicBookingWizard({
       time: "",
       clientName: customerSession?.name ?? "",
       clientPhone: "",
+      clientEmail: customerSession?.email ?? "",
       notes: "",
     },
   });
@@ -110,26 +107,48 @@ export function PublicBookingWizard({
 
   useEffect(() => {
     async function loadSlots() {
-      if (!professionalId || !serviceId || !date) {
-        setSlots([]);
+      if (!serviceId || !date) {
+        setSlotsByProfessional({});
         return;
       }
       setLoadingSlots(true);
-      const result = await getPublicAvailableSlots(
-        organization.slug,
-        professionalId,
-        serviceId,
-        date,
+      const results = await Promise.all(
+        professionals
+          .filter((p) => p.active)
+          .map(async (professional) => {
+            const result = await getPublicAvailableSlots(
+              organization.slug,
+              professional.id,
+              serviceId,
+              date,
+            );
+            return { professionalId: professional.id, slots: result.slots, error: result.error };
+          }),
       );
       setLoadingSlots(false);
-      setSlots(result.slots);
-      if (result.error && result.slots.length === 0) {
-        toast.error(result.error);
+
+      const map: Record<string, string[]> = {};
+      for (const result of results) {
+        map[result.professionalId] = result.slots;
       }
-      setValue("time", "");
+      setSlotsByProfessional(map);
+
+      const firstError = results.find((r) => r.error && r.slots.length === 0)?.error;
+      if (firstError && results.every((r) => r.slots.length === 0)) {
+        toast.error(firstError);
+      }
+
+      if (
+        professionalId &&
+        time &&
+        !(map[professionalId]?.includes(time))
+      ) {
+        setValue("professionalId", "");
+        setValue("time", "");
+      }
     }
     loadSlots();
-  }, [professionalId, serviceId, date, organization.slug, setValue]);
+  }, [serviceId, date, organization.slug, professionals, setValue, professionalId, time]);
 
   async function goNext() {
     if (step === 0) {
@@ -137,11 +156,7 @@ export function PublicBookingWizard({
       if (!valid) return;
     }
     if (step === 1) {
-      const valid = await trigger("professionalId");
-      if (!valid) return;
-    }
-    if (step === 2) {
-      const valid = await trigger(["date", "time"]);
+      const valid = await trigger(["date", "time", "professionalId"]);
       if (!valid) return;
     }
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -174,21 +189,21 @@ export function PublicBookingWizard({
     return (
       <Card>
         <CardContent className="flex flex-col items-center px-6 py-12 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-50">
-            <CheckCircle2 className="h-8 w-8 text-teal-600" />
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-light">
+            <CheckCircle2 className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="text-xl font-semibold text-slate-900">
-            Agendamento confirmado!
+          <h2 className="text-xl font-semibold text-foreground">
+            Agendamento realizado!
           </h2>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             {confirmation.serviceName} com {confirmation.professionalName}
           </p>
-          <p className="mt-1 text-sm font-medium text-slate-900">
+          <p className="mt-1 text-sm font-medium text-foreground">
             {formatDateTime(confirmation.startAt)}
           </p>
-          <p className="mt-4 max-w-sm text-sm text-slate-500">
-            Guarde este horário. Para consultar ou cancelar depois, acesse seus
-            agendamentos com Google.
+          <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+            Guarde este horário. Use o mesmo e-mail informado no agendamento para
+            acompanhar ou cancelar depois.
           </p>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row">
             {isCustomerLoggedIn ? (
@@ -236,8 +251,8 @@ export function PublicBookingWizard({
             className={cn(
               "flex-1 rounded-lg px-2 py-2 text-center text-xs font-medium",
               i <= step
-                ? "bg-teal-100 text-teal-800"
-                : "bg-slate-100 text-slate-400",
+                ? "bg-primary-light text-primary-dark"
+                : "bg-muted text-muted-foreground/60",
             )}
           >
             <span className="hidden sm:inline">{label}</span>
@@ -265,16 +280,16 @@ export function PublicBookingWizard({
                           className={cn(
                             "rounded-xl border p-4 text-left transition-colors",
                             field.value === service.id
-                              ? "border-teal-500 bg-teal-50"
-                              : "border-slate-200 hover:border-slate-300",
+                              ? "border-primary bg-primary-light"
+                              : "border-border hover:border-border",
                           )}
                         >
-                          <p className="font-medium text-slate-900">{service.name}</p>
-                          <p className="mt-1 text-sm text-slate-600">
+                          <p className="font-medium text-foreground">{service.name}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
                             {service.durationMin} min · {formatCurrency(service.price)}
                           </p>
                           {service.description && (
-                            <p className="mt-2 text-xs text-slate-500">
+                            <p className="mt-2 text-xs text-muted-foreground">
                               {service.description}
                             </p>
                           )}
@@ -290,98 +305,51 @@ export function PublicBookingWizard({
             )}
 
             {step === 1 && (
-              <div className="space-y-3">
-                <Label>Escolha o profissional *</Label>
-                <Controller
-                  name="professionalId"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {professionals.map((professional) => (
-                        <button
-                          key={professional.id}
-                          type="button"
-                          onClick={() => field.onChange(professional.id)}
-                          className={cn(
-                            "rounded-xl border p-4 text-left transition-colors",
-                            field.value === professional.id
-                              ? "border-teal-500 bg-teal-50"
-                              : "border-slate-200 hover:border-slate-300",
-                          )}
-                        >
-                          <p className="font-medium text-slate-900">
-                            {professional.name}
-                          </p>
-                          {professional.specialty && (
-                            <p className="mt-1 text-sm text-slate-600">
-                              {professional.specialty}
-                            </p>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+              <div className="space-y-6">
+                <AgendaWeekStrip
+                  selectedDate={date || format(new Date(), "yyyy-MM-dd")}
+                  onDateChange={(value) => {
+                    setValue("date", value, { shouldValidate: true });
+                    setValue("time", "");
+                    setValue("professionalId", "");
+                  }}
+                  minDate={new Date().toISOString().split("T")[0]}
                 />
-                {errors.professionalId && (
-                  <p className="text-sm text-rose-600">
-                    {errors.professionalId.message}
-                  </p>
-                )}
-              </div>
-            )}
 
-            {step === 2 && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="date">Data *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    min={new Date().toISOString().split("T")[0]}
-                    {...register("date")}
-                  />
+                <div className="space-y-3">
+                  <Label>Escolha o horário e o profissional *</Label>
+                  {!date ? (
+                    <p className="rounded-2xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                      Selecione uma data acima para ver os horários.
+                    </p>
+                  ) : (
+                    <ProfessionalSlotTimeGrid
+                      professionals={professionals}
+                      slotsByProfessional={slotsByProfessional}
+                      loading={loadingSlots}
+                      selectedProfessionalId={professionalId}
+                      selectedTime={time}
+                      onSelect={(proId, slot) => {
+                        setValue("professionalId", proId, { shouldValidate: true });
+                        setValue("time", slot, { shouldValidate: true });
+                      }}
+                    />
+                  )}
                   {errors.date && (
                     <p className="text-sm text-rose-600">{errors.date.message}</p>
                   )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Horário *</Label>
-                  <Controller
-                    name="time"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={loadingSlots || slots.length === 0}
-                      >
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              loadingSlots
-                                ? "Carregando horários..."
-                                : slots.length === 0
-                                  ? "Nenhum horário disponível"
-                                  : "Selecione o horário"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {slots.map((slot) => (
-                            <SelectItem key={slot} value={slot}>
-                              {slot}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+                  {errors.professionalId && (
+                    <p className="text-sm text-rose-600">
+                      {errors.professionalId.message}
+                    </p>
+                  )}
                   {errors.time && (
                     <p className="text-sm text-rose-600">{errors.time.message}</p>
                   )}
                 </div>
+
                 {selectedService && (
-                  <p className="text-sm text-slate-500 sm:col-span-2">
+                  <p className="text-sm text-muted-foreground">
                     {selectedService.name} · {selectedService.durationMin} min ·{" "}
                     {formatCurrency(selectedService.price)}
                   </p>
@@ -389,11 +357,11 @@ export function PublicBookingWizard({
               </div>
             )}
 
-            {step === 3 && (
+            {step === 2 && (
               <div className="space-y-4">
-                <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+                <div className="rounded-lg border border-border/60 bg-muted p-4 text-sm text-muted-foreground">
                   <p>
-                    <strong className="text-slate-900">{selectedService?.name}</strong>{" "}
+                    <strong className="text-foreground">{selectedService?.name}</strong>{" "}
                     com {selectedProfessional?.name}
                   </p>
                   <p className="mt-1">
@@ -421,11 +389,30 @@ export function PublicBookingWizard({
                       {...register("clientPhone")}
                     />
                     {errors.clientPhone && (
-                      <p className="text-sm text-rose-600">
+                      <p className="text-sm text-rose-600" role="alert">
                         {errors.clientPhone.message}
                       </p>
                     )}
                   </div>
+                  {!isCustomerLoggedIn && (
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="clientEmail">E-mail *</Label>
+                      <Input
+                        id="clientEmail"
+                        type="email"
+                        placeholder="seu@email.com"
+                        {...register("clientEmail")}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Usaremos este e-mail para você acompanhar seus agendamentos.
+                      </p>
+                      {errors.clientEmail && (
+                        <p className="text-sm text-rose-600" role="alert">
+                          {errors.clientEmail.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="notes">Observações (opcional)</Label>
                     <Textarea id="notes" rows={2} {...register("notes")} />

@@ -20,35 +20,48 @@ export function PublicBookingHeader({
     session?.user?.accountType === AccountType.CUSTOMER && status === "authenticated";
 
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-3xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link href={`/${slug}`} className="text-lg font-bold text-teal-600">
+          <Link
+            href={`/${slug}`}
+            className="font-display text-lg font-semibold text-primary"
+          >
             {organizationName}
           </Link>
-          <p className="text-xs text-slate-500">Agendamento online</p>
+          <p className="text-xs text-muted-foreground">Agendamento online</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
           {isCustomer ? (
             <>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto" asChild>
                 <Link href={`/${slug}/meus-agendamentos`}>Meus agendamentos</Link>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => signOut()}>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => signOut()}>
                 Sair
               </Button>
             </>
           ) : (
-            <GoogleSignInButton
-              intent="customer"
-              callbackUrl={`/${slug}/meus-agendamentos`}
-              label="Entrar com Google"
-              size="sm"
-            />
+            <>
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto" asChild>
+                <Link
+                  href={`/login?area=cliente&callbackUrl=${encodeURIComponent(`/${slug}/meus-agendamentos`)}`}
+                >
+                  Entrar
+                </Link>
+              </Button>
+              <GoogleSignInButton
+                intent="customer"
+                callbackUrl={`/${slug}/meus-agendamentos`}
+                label="Google"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
+            </>
           )}
           <Link
-            href="/"
-            className="px-2 text-sm text-slate-500 hover:text-slate-700"
+            href="/precos"
+            className="px-2 py-2 text-center text-sm text-muted-foreground hover:text-foreground sm:py-0"
           >
             Agendei
           </Link>

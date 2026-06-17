@@ -13,12 +13,12 @@ export function PublicBookingLayout({
   children,
 }: PublicBookingLayoutProps) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <PublicBookingHeader slug={slug} organizationName={organizationName} />
-      <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+      <main className="mx-auto max-w-3xl px-4 py-6 pb-safe sm:py-8">{children}</main>
+      <footer className="border-t border-border/60 px-4 py-6 pb-safe text-center text-xs text-muted-foreground">
         Agendamento powered by{" "}
-        <Link href="/" className="text-teal-600 hover:underline">
+        <Link href="/" className="text-primary hover:underline">
           Agendei
         </Link>
       </footer>
