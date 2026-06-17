@@ -68,21 +68,61 @@ export function ProfessionalTable({ professionals }: ProfessionalTableProps) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full min-w-[480px] text-sm">
+      <div className="space-y-3 md:hidden">
+        {professionals.map((professional) => (
+          <div
+            key={professional.id}
+            className="rounded-xl border border-border bg-card p-4 shadow-warm"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-medium text-foreground">{professional.name}</p>
+                {professional.specialty && (
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {professional.specialty}
+                  </p>
+                )}
+              </div>
+              <Badge variant={professional.active ? "success" : "secondary"}>
+                {professional.active ? "Ativo" : "Inativo"}
+              </Badge>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" asChild>
+                <Link href={`/profissionais/${professional.id}/editar`}>
+                  <Pencil className="mr-1.5 h-4 w-4" />
+                  Editar
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => handleToggle(professional.id, professional.active)}
+              >
+                <UserX className="mr-1.5 h-4 w-4" />
+                {professional.active ? "Desativar" : "Ativar"}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th className="px-4 py-3 font-medium text-slate-600">Nome</th>
-              <th className="hidden px-4 py-3 font-medium text-slate-600 sm:table-cell">Especialidade</th>
-              <th className="px-4 py-3 font-medium text-slate-600">Status</th>
-              <th className="px-4 py-3 text-right font-medium text-slate-600">Ações</th>
+            <tr className="border-b border-border bg-muted text-left">
+              <th className="px-4 py-3 font-medium text-muted-foreground">Nome</th>
+              <th className="px-4 py-3 font-medium text-muted-foreground">Especialidade</th>
+              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
             </tr>
           </thead>
           <tbody>
             {professionals.map((professional) => (
-              <tr key={professional.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-3 font-medium text-slate-900">{professional.name}</td>
-                <td className="hidden px-4 py-3 text-slate-600 sm:table-cell">
+              <tr key={professional.id} className="border-b border-border/60 last:border-0">
+                <td className="px-4 py-3 font-medium text-foreground">{professional.name}</td>
+                <td className="px-4 py-3 text-muted-foreground">
                   {professional.specialty ?? "—"}
                 </td>
                 <td className="px-4 py-3">
