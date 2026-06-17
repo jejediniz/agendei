@@ -8,6 +8,7 @@ export const publicBookingSchema = z.object({
   time: z.string().min(1, "Selecione um horário"),
   clientName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   clientPhone: z.string().min(8, "Telefone inválido"),
+  clientEmail: z.string().email("E-mail inválido").optional().or(z.literal("")),
   notes: z.string().optional(),
 });
 

@@ -83,3 +83,16 @@ export function minutesToTime(minutes: number): string {
 export function toDateInputValue(date: Date): string {
   return format(toZonedTime(date, TIMEZONE), "yyyy-MM-dd");
 }
+
+export function getDayRange(dateStr: string) {
+  const start = combineDateAndTime(dateStr, "00:00");
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const localEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
+  const end = fromZonedTime(localEnd, TIMEZONE);
+  return { start, end };
+}
+
+export function minutesFromDateInTimezone(date: Date): number {
+  const zoned = toZonedTime(date, TIMEZONE);
+  return zoned.getHours() * 60 + zoned.getMinutes();
+}

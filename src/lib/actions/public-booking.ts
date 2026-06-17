@@ -10,6 +10,7 @@ import {
   isBookingOpen,
 } from "@/lib/queries/public-booking";
 import { prisma } from "@/lib/prisma";
+import { phonesMatch } from "@/lib/utils/phone";
 import {
   publicBookingSchema,
   publicSlotsSchema,
@@ -76,28 +77,52 @@ export async function createPublicBooking(
 
   const { organization } = resolved;
   const phone = parsed.data.clientPhone.trim();
+  const clientEmail = parsed.data.clientEmail?.trim() || undefined;
   const session = await auth();
   const isCustomer =
     session?.user?.accountType === AccountType.CUSTOMER && session.user.id;
   const customerUserId = isCustomer ? session.user.id : undefined;
-  const customerEmail = isCustomer ? session.user.email ?? undefined : undefined;
+  const customerEmail = isCustomer
+    ? (session.user.email ?? undefined)
+    : clientEmail;
 
-  let client = customerUserId
-    ? await prisma.client.findFirst({
-        where: {
-          organizationId: organization.id,
-          OR: [{ userId: customerUserId }, { phone }],
-        },
-      })
-    : await prisma.client.findFirst({
-        where: { organizationId: organization.id, phone },
-      });
+  if (!isCustomer && !clientEmail) {
+    return {
+      success: false,
+      error: "Informe seu e-mail para acompanhar o agendamento depois.",
+    };
+  }
+
+  const orgClients = await prisma.client.findMany({
+    where: { organizationId: organization.id },
+  });
+
+  let client = orgClients.find((c) => {
+    if (customerUserId && c.userId === customerUserId) return true;
+    if (phonesMatch(c.phone, phone)) return true;
+    if (
+      customerEmail &&
+      c.email &&
+      c.email.toLowerCase() === customerEmail.toLowerCase()
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  if (client?.userId && customerUserId && client.userId !== customerUserId) {
+    return {
+      success: false,
+      error: "Este telefone já está vinculado a outra conta de cliente.",
+    };
+  }
 
   if (client) {
+    const canUpdateName = !client.userId || !!customerUserId;
     client = await prisma.client.update({
       where: { id: client.id },
       data: {
-        name: parsed.data.clientName.trim(),
+        ...(canUpdateName ? { name: parsed.data.clientName.trim() } : {}),
         phone,
         email: customerEmail ?? client.email,
         userId: customerUserId ?? client.userId,
@@ -117,6 +142,14 @@ export async function createPublicBooking(
     });
   }
 
+  // Garante vínculo imediato para clientes logados
+  if (customerUserId && !client.userId) {
+    client = await prisma.client.update({
+      where: { id: client.id },
+      data: { userId: customerUserId },
+    });
+  }
+
   const result = await createAppointmentForOrganization(organization.id, {
     clientId: client.id,
     professionalId: parsed.data.professionalId,
@@ -131,6 +164,7 @@ export async function createPublicBooking(
   }
 
   revalidatePath(`/${organization.slug}`);
+  revalidatePath(`/${organization.slug}/meus-agendamentos`);
   revalidatePath("/agendamentos");
   revalidatePath("/agenda");
   revalidatePath("/");

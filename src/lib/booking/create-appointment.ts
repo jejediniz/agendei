@@ -76,35 +76,44 @@ export async function createAppointmentForOrganization(
     };
   }
 
-  const conflicting = await prisma.appointment.findMany({
-    where: {
-      organizationId,
-      professionalId: data.professionalId,
-      status: { in: BLOCKING_STATUSES },
-      startAt: { lt: endAt },
-      endAt: { gt: startAt },
-    },
-  });
+  try {
+    const appointment = await prisma.$transaction(async (tx) => {
+      const conflicting = await tx.appointment.findFirst({
+        where: {
+          organizationId,
+          professionalId: data.professionalId,
+          status: { in: BLOCKING_STATUSES },
+          startAt: { lt: endAt },
+          endAt: { gt: startAt },
+        },
+      });
 
-  if (conflicting.length > 0) {
-    return {
-      success: false,
-      error: "Este horário já está ocupado para o profissional selecionado.",
-    };
+      if (conflicting) {
+        throw new Error("SLOT_TAKEN");
+      }
+
+      return tx.appointment.create({
+        data: {
+          organizationId,
+          clientId: data.clientId,
+          professionalId: data.professionalId,
+          serviceId: data.serviceId,
+          startAt,
+          endAt,
+          notes: data.notes || null,
+          status: AppointmentStatus.SCHEDULED,
+        },
+      });
+    });
+
+    return { success: true, id: appointment.id };
+  } catch (error) {
+    if (error instanceof Error && error.message === "SLOT_TAKEN") {
+      return {
+        success: false,
+        error: "Este horário já está ocupado para o profissional selecionado.",
+      };
+    }
+    throw error;
   }
-
-  const appointment = await prisma.appointment.create({
-    data: {
-      organizationId,
-      clientId: data.clientId,
-      professionalId: data.professionalId,
-      serviceId: data.serviceId,
-      startAt,
-      endAt,
-      notes: data.notes || null,
-      status: AppointmentStatus.SCHEDULED,
-    },
-  });
-
-  return { success: true, id: appointment.id };
 }

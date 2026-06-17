@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { orgWhere } from "@/lib/tenant/prisma-scopes";
-import { getTodayRange } from "@/lib/utils/date";
+import { getTodayRange, getDayRange } from "@/lib/utils/date";
 import {
   type SerializableService,
   serializeService,
@@ -45,8 +45,7 @@ export async function getAppointments(
   };
 
   if (filters?.date) {
-    const start = new Date(filters.date + "T00:00:00");
-    const end = new Date(filters.date + "T23:59:59");
+    const { start, end } = getDayRange(filters.date);
     where.startAt = { gte: start, lte: end };
   }
 

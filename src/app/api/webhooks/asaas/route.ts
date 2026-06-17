@@ -3,6 +3,13 @@ import { SubscriptionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    !process.env.ASAAS_WEBHOOK_TOKEN
+  ) {
+    return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+  }
+
   const token = request.headers.get("asaas-access-token");
   if (
     process.env.ASAAS_WEBHOOK_TOKEN &&

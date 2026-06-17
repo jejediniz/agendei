@@ -8,6 +8,8 @@ import {
 import {
   combineDateAndTime,
   getDayOfWeek,
+  getDayRange,
+  minutesFromDateInTimezone,
   parseTimeToMinutes,
 } from "@/lib/utils/date";
 
@@ -31,7 +33,7 @@ export async function fetchAvailableSlots(
     return { slots: [], error: "Profissional não encontrado." };
   }
 
-  const dayOfWeek = getDayOfWeek(new Date(date + "T12:00:00"));
+  const dayOfWeek = getDayOfWeek(combineDateAndTime(date, "12:00"));
   const availabilities = await prisma.availability.findMany({
     where: { professionalId, dayOfWeek, active: true },
   });
@@ -40,8 +42,7 @@ export async function fetchAvailableSlots(
     return { slots: [], error: "Profissional sem horário disponível neste dia." };
   }
 
-  const dayStart = combineDateAndTime(date, "00:00");
-  const dayEnd = combineDateAndTime(date, "23:59");
+  const { start: dayStart, end: dayEnd } = getDayRange(date);
 
   const appointments = await prisma.appointment.findMany({
     where: {
@@ -59,9 +60,7 @@ export async function fetchAvailableSlots(
   ).filter((slot) => {
     const startAt = combineDateAndTime(date, slot);
     const endAt = calculateEndAt(startAt, service.durationMin);
-    const endMinutes = parseTimeToMinutes(
-      `${endAt.getHours().toString().padStart(2, "0")}:${endAt.getMinutes().toString().padStart(2, "0")}`,
-    );
+    const endMinutes = minutesFromDateInTimezone(endAt);
     return availabilities.some((av) => {
       const avEnd = parseTimeToMinutes(av.endTime);
       const slotStart = parseTimeToMinutes(slot);
