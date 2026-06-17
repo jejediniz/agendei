@@ -17,10 +17,10 @@ export default async function OnboardingPage() {
 
   if (!membership) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 py-12 lg:p-8">
+      <div className="min-h-screen bg-background p-4 py-12 lg:p-8">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-teal-600">Agendei</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="font-display text-2xl font-semibold text-primary">Agendei</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Olá, {session.user.name ?? session.user.email}! Falta pouco para começar.
           </p>
         </div>
@@ -46,10 +46,10 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 py-12 lg:p-8">
+    <div className="min-h-screen bg-background p-4 py-12 lg:p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-teal-600">Agendei</h1>
-        <p className="mt-1 text-sm text-slate-500">Configuração inicial</p>
+        <h1 className="font-display text-2xl font-semibold text-primary">Agendei</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Configuração inicial</p>
       </div>
       <OnboardingWizard
         step={org.onboardingStep}

@@ -22,12 +22,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <SubscriptionBanner />
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Visão geral do seu estabelecimento
-        </p>
+        <SubscriptionBanner />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -74,16 +70,16 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.todayAppointments.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum agendamento hoje.</p>
+              <p className="text-sm text-muted-foreground">Nenhum agendamento hoje.</p>
             ) : (
               data.todayAppointments.map((apt) => (
                 <div
                   key={apt.id}
-                  className="flex flex-col gap-2 rounded-lg border border-slate-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+                  className="flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-900">{apt.client.name}</p>
-                    <p className="text-sm text-slate-500">
+                    <p className="font-medium text-foreground">{apt.client.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       {formatDateTime(apt.startAt)} · {apt.professional.name}
                     </p>
                   </div>
@@ -103,16 +99,16 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.upcomingAppointments.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum atendimento próximo.</p>
+              <p className="text-sm text-muted-foreground">Nenhum atendimento próximo.</p>
             ) : (
               data.upcomingAppointments.map((apt) => (
                 <div
                   key={apt.id}
-                  className="flex flex-col gap-2 rounded-lg border border-slate-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+                  className="flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-900">{apt.client.name}</p>
-                    <p className="text-sm text-slate-500">
+                    <p className="font-medium text-foreground">{apt.client.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       {formatDateTime(apt.startAt)} · {apt.service.name}
                     </p>
                   </div>

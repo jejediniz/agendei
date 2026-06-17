@@ -12,25 +12,29 @@ type AppHeaderProps = {
 
 export function AppHeader({ title, onMenuClick }: AppHeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:px-8">
-      <div className="flex items-center gap-3">
+    <header className="flex h-14 min-h-14 items-center justify-between gap-2 border-b border-border/60 bg-card/80 px-4 backdrop-blur-sm sm:h-16 lg:px-8">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="touch-target shrink-0 lg:hidden"
           onClick={onMenuClick}
+          aria-label="Abrir menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <h2 className="truncate font-display text-base font-semibold text-foreground sm:text-lg">
+          {title}
+        </h2>
       </div>
-      <div className="flex items-center gap-4">
-        <span className="hidden text-sm text-slate-500 sm:block">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+        <span className="hidden text-sm text-muted-foreground md:block">
           {formatDate(new Date(), "EEEE, dd 'de' MMMM")}
         </span>
         <Button
           variant="ghost"
           size="sm"
+          className="touch-target"
           onClick={() => signOut({ callbackUrl: "/login" })}
         >
           <LogOut className="h-4 w-4" />

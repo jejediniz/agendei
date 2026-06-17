@@ -47,8 +47,8 @@ function AreaTab({
       className={cn(
         "flex flex-1 flex-col items-center gap-1.5 rounded-lg px-3 py-3 text-center transition-colors",
         active
-          ? "bg-teal-600 text-white shadow-sm"
-          : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+          ? "bg-primary text-primary-foreground shadow-warm"
+          : "bg-muted text-muted-foreground hover:bg-border/40",
       )}
     >
       <Icon className="h-5 w-5" />
@@ -57,7 +57,13 @@ function AreaTab({
   );
 }
 
-export function LoginForm() {
+type LoginFormProps = {
+  customerOrganizations?: Array<{ id: string; name: string; slug: string }>;
+};
+
+export function LoginForm({
+  customerOrganizations = [],
+}: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -170,7 +176,7 @@ export function LoginForm() {
   if (status === "loading") {
     return (
       <Card className="w-full max-w-md">
-        <CardContent className="py-10 text-center text-sm text-slate-500">
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
           Carregando...
         </CardContent>
       </Card>
@@ -180,7 +186,7 @@ export function LoginForm() {
   if (isBusinessLoggedIn && session?.user.organizationId) {
     return (
       <Card className="w-full max-w-md">
-        <CardContent className="py-10 text-center text-sm text-slate-500">
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
           Carregando...
         </CardContent>
       </Card>
@@ -191,14 +197,14 @@ export function LoginForm() {
     return (
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50">
-            <BriefcaseBusiness className="h-6 w-6 text-teal-600" />
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-light">
+            <BriefcaseBusiness className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-teal-600">Área do negócio</CardTitle>
+          <CardTitle className="font-display text-2xl text-primary">Área do negócio</CardTitle>
           <CardDescription>Conectado como {session.user.email}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-center text-sm text-slate-600">
+          <p className="text-center text-sm text-muted-foreground">
             Sua conta ainda não tem um negócio configurado. Continue o cadastro
             ou saia para entrar com outra conta.
           </p>
@@ -221,18 +227,39 @@ export function LoginForm() {
     return (
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50">
-            <CalendarCheck className="h-6 w-6 text-teal-600" />
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-light">
+            <CalendarCheck className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-teal-600">Área do cliente</CardTitle>
+          <CardTitle className="font-display text-2xl text-primary">Área do cliente</CardTitle>
           <CardDescription>Conectado como {session.user.email}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-center text-sm text-slate-600">
-            Acesse o link de agendamento do estabelecimento e clique em{" "}
-            <span className="font-medium">Meus agendamentos</span> para ver ou
-            cancelar seus horários.
-          </p>
+          {customerOrganizations.length > 0 ? (
+            <div className="space-y-3">
+              <p className="text-center text-sm text-muted-foreground">
+                Seus estabelecimentos com agendamentos:
+              </p>
+              <ul className="space-y-2">
+                {customerOrganizations.map((org) => (
+                  <li key={org.id}>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link href={`/${org.slug}/meus-agendamentos`}>
+                        {org.name}
+                      </Link>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground">
+              Acesse o link de agendamento do estabelecimento e clique em{" "}
+              <span className="font-medium text-foreground">
+                Meus agendamentos
+              </span>{" "}
+              para ver ou cancelar. Use o mesmo e-mail do agendamento ao entrar.
+            </p>
+          )}
           <Button
             variant="outline"
             className="w-full"
@@ -248,7 +275,7 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-teal-600">Agendei</CardTitle>
+        <CardTitle className="font-display text-2xl text-primary">Agendei</CardTitle>
         <CardDescription>Como você quer entrar?</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -269,7 +296,7 @@ export function LoginForm() {
 
         {area === "negocio" ? (
           <div className="space-y-5">
-            <div className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <div className="rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
               Acesse o painel para gerenciar agenda, serviços, equipe e
               clientes do seu estabelecimento.
             </div>
@@ -283,10 +310,10 @@ export function LoginForm() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-500">ou</span>
+                <span className="bg-card px-2 text-muted-foreground">ou</span>
               </div>
             </div>
 
@@ -322,16 +349,16 @@ export function LoginForm() {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-muted-foreground">
               Ainda não tem conta?{" "}
-              <Link href="/cadastro" className="text-teal-600 hover:underline">
+              <Link href="/cadastro" className="text-primary hover:underline">
                 Criar conta grátis
               </Link>
             </p>
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="rounded-lg bg-teal-50 px-4 py-3 text-sm text-teal-900">
+            <div className="rounded-xl bg-primary-light px-4 py-3 text-sm text-primary-dark">
               Entre para acompanhar os agendamentos que você fez em salões,
               clínicas e outros estabelecimentos.
             </div>
@@ -345,10 +372,10 @@ export function LoginForm() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-500">ou</span>
+                <span className="bg-card px-2 text-muted-foreground">ou</span>
               </div>
             </div>
 
@@ -389,19 +416,19 @@ export function LoginForm() {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-muted-foreground">
               Não tem conta?{" "}
               <Link
                 href={`/cadastro-cliente?callbackUrl=${encodeURIComponent(customerCallbackUrl)}`}
-                className="text-teal-600 hover:underline"
+                className="text-primary hover:underline"
               >
                 Criar conta grátis
               </Link>
             </p>
 
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-center text-xs text-muted-foreground">
               Depois do login, acesse o link do estabelecimento e abra{" "}
-              <span className="font-medium text-slate-600">
+              <span className="font-medium text-foreground">
                 Meus agendamentos
               </span>
               .

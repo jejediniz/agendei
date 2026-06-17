@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { AccountType, MemberRole, PlatformRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { expireTrials } from "@/lib/billing/subscription";
-import { linkClientsToCustomerByEmail } from "@/lib/customer/link-clients";
+import { linkGuestClientsToCustomer } from "@/lib/customer/link-clients";
 import {
   clearGoogleAuthIntent,
   readGoogleAuthIntent,
@@ -133,7 +133,7 @@ async function upsertGoogleCustomer(profile: {
         },
       });
 
-  await linkClientsToCustomerByEmail(user.id, profile.email);
+  await linkGuestClientsToCustomer(user.id, { email: profile.email });
 
   return {
     id: user.id,

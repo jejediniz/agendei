@@ -76,8 +76,8 @@ export function OnboardingWizard({
             key={label}
             className={`flex-1 rounded-lg px-3 py-2 text-center text-xs font-medium ${
               i <= currentStep
-                ? "bg-teal-100 text-teal-800"
-                : "bg-slate-100 text-slate-400"
+                ? "bg-primary-light text-primary-dark"
+                : "bg-muted text-muted-foreground/60"
             }`}
           >
             {label}
@@ -91,7 +91,7 @@ export function OnboardingWizard({
             <CardTitle>Bem-vindo ao Agendei, {businessName}!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-slate-600">
+            <p className="text-muted-foreground">
               Vamos configurar seu negócio em poucos passos. Você terá 14 dias
               gratuitos para explorar todas as funcionalidades.
             </p>
@@ -106,7 +106,7 @@ export function OnboardingWizard({
             <CardTitle>Configuração concluída!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Seu negócio já está pronto. Vamos te levar ao dashboard.
             </p>
             <Button onClick={() => router.push("/")} disabled={loading}>
@@ -118,19 +118,23 @@ export function OnboardingWizard({
 
       {currentStep === 1 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="font-display text-lg font-semibold text-foreground">
             Cadastre seus serviços
           </h2>
           {services.length === 0 ? (
             <ServiceForm redirectTo="/onboarding" />
           ) : (
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-600">
-                  {services.length} serviço(s) cadastrado(s).
-                </p>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">
+                    {services.length} serviço(s) cadastrado(s):{" "}
+                    {services.map((s) => s.name).join(", ")}
+                  </p>
+                </CardContent>
+              </Card>
+              <ServiceForm redirectTo="/onboarding" />
+            </div>
           )}
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => goToStep(0)}>
@@ -145,19 +149,23 @@ export function OnboardingWizard({
 
       {currentStep === 2 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="font-display text-lg font-semibold text-foreground">
             Cadastre seus profissionais
           </h2>
           {professionals.length === 0 ? (
             <ProfessionalForm redirectTo="/onboarding" />
           ) : (
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-600">
-                  {professionals.length} profissional(is) cadastrado(s).
-                </p>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">
+                    {professionals.length} profissional(is) cadastrado(s):{" "}
+                    {professionals.map((p) => p.name).join(", ")}
+                  </p>
+                </CardContent>
+              </Card>
+              <ProfessionalForm redirectTo="/onboarding" />
+            </div>
           )}
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => goToStep(1)}>
@@ -175,7 +183,7 @@ export function OnboardingWizard({
 
       {currentStep === 3 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="font-display text-lg font-semibold text-foreground">
             Defina horários de atendimento
           </h2>
           <AvailabilityManager

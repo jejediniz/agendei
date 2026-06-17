@@ -33,7 +33,7 @@ export function AppointmentFilters({ professionals }: AppointmentFiltersProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
       <div className="space-y-2">
         <Label>Data</Label>
         <Input

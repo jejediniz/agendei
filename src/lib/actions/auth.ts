@@ -5,7 +5,7 @@ import { AccountType, MemberRole, SubscriptionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { registerOrganizationSchema } from "@/lib/validations/organization";
 import { registerCustomerSchema } from "@/lib/validations/auth";
-import { linkClientsToCustomerByEmail } from "@/lib/customer/link-clients";
+import { linkGuestClientsToCustomer } from "@/lib/customer/link-clients";
 import {
   BUSINESS_ON_CUSTOMER_ERROR,
   CUSTOMER_ON_BUSINESS_ERROR,
@@ -52,7 +52,7 @@ export async function registerCustomer(
     },
   });
 
-  await linkClientsToCustomerByEmail(user.id, parsed.data.email);
+  await linkGuestClientsToCustomer(user.id, { email: parsed.data.email });
 
   return { success: true };
 }
