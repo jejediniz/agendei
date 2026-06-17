@@ -95,7 +95,7 @@ export function RegisterForm() {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-teal-600">Criar conta de negócio</CardTitle>
+        <CardTitle className="font-display text-2xl text-primary">Criar conta de negócio</CardTitle>
         <CardDescription>
           14 dias grátis para configurar agenda, serviços e equipe
         </CardDescription>
@@ -110,10 +110,10 @@ export function RegisterForm() {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-slate-200" />
+            <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-slate-500">ou</span>
+            <span className="bg-card px-2 text-muted-foreground">ou</span>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export function RegisterForm() {
           <div className="space-y-2">
             <Label htmlFor="slug">Endereço do negócio *</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">agendei.com/</span>
+              <span className="text-sm text-muted-foreground">agendei.com/</span>
               <Input id="slug" {...register("slug")} />
             </div>
             {errors.slug && (
@@ -184,17 +184,17 @@ export function RegisterForm() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Criando conta..." : "Começar trial gratuito"}
           </Button>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-muted-foreground">
             Já tem conta?{" "}
-            <Link href="/login" className="text-teal-600 hover:underline">
+            <Link href="/login" className="text-primary hover:underline">
               Entrar
             </Link>
           </p>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-muted-foreground">
             É cliente?{" "}
             <Link
               href="/cadastro-cliente"
-              className="text-teal-600 hover:underline"
+              className="text-primary hover:underline"
             >
               Criar conta de cliente
             </Link>

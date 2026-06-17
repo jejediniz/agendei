@@ -19,7 +19,7 @@ export default async function PlatformOrgPage({ params }: PageProps) {
   if (!org) notFound();
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="min-h-screen bg-muted p-8">
       <div className="mx-auto max-w-2xl space-y-6">
         <Button variant="ghost" asChild>
           <Link href="/platform">← Voltar</Link>

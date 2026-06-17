@@ -26,14 +26,14 @@ export function BookingUnavailable({
   return (
     <Card>
       <CardContent className="flex flex-col items-center px-6 py-12 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-          <CalendarX className="h-8 w-8 text-slate-400" />
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+          <CalendarX className="h-8 w-8 text-muted-foreground/60" />
         </div>
-        <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         {organization && (
-          <p className="mt-1 text-sm text-slate-500">{organization.name}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{organization.name}</p>
         )}
-        <p className="mt-4 max-w-sm text-sm text-slate-600">{description}</p>
+        <p className="mt-4 max-w-sm text-sm text-muted-foreground">{description}</p>
         <Button className="mt-6" variant="outline" asChild>
           <Link href="/">Voltar ao início</Link>
         </Button>

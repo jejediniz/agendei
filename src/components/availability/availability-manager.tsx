@@ -245,13 +245,13 @@ export function AvailabilityManager({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-col gap-3 rounded-lg border border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-lg border border-border/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-foreground">
                       {DAY_OF_WEEK_LABELS[item.dayOfWeek]}
                     </span>
-                    <span className="text-slate-600">
+                    <span className="text-muted-foreground">
                       {item.startTime} — {item.endTime}
                     </span>
                     <Badge variant={item.active ? "success" : "secondary"}>

@@ -85,13 +85,13 @@ export function PlanPanel({ status, trialEndsAt, price }: PlanPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-3xl font-bold text-foreground">
             {formatCurrency(price)}
-            <span className="text-base font-normal text-slate-500">/mês</span>
+            <span className="text-base font-normal text-muted-foreground">/mês</span>
           </p>
 
           {status === SubscriptionStatus.TRIAL && trialEndsAt && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Restam <strong>{trialDays} dia(s)</strong> de trial gratuito.
             </p>
           )}

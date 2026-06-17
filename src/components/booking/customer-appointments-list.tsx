@@ -74,7 +74,7 @@ export function CustomerAppointmentsList({
       <div className="space-y-8">
         {upcoming.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Próximos</h2>
+            <h2 className="text-sm font-medium text-foreground/80">Próximos</h2>
             {upcoming.map((apt) => (
               <AppointmentCard
                 key={apt.id}
@@ -87,7 +87,7 @@ export function CustomerAppointmentsList({
 
         {past.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Histórico</h2>
+            <h2 className="text-sm font-medium text-foreground/80">Histórico</h2>
             {past.map((apt) => (
               <AppointmentCard key={apt.id} appointment={apt} />
             ))}
@@ -122,11 +122,11 @@ function AppointmentCard({
     (appointment.status === "SCHEDULED" || appointment.status === "CONFIRMED");
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="font-medium text-slate-900">{appointment.service.name}</p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="font-medium text-foreground">{appointment.service.name}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
             {formatDateTime(appointment.startAt)} · {appointment.professional.name}
           </p>
         </div>

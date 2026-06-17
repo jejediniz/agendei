@@ -12,7 +12,7 @@ export function DashboardSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-slate-200 bg-white p-6"
+            className="rounded-xl border border-border bg-white p-6"
           >
             <Skeleton className="mb-4 h-4 w-24" />
             <Skeleton className="h-8 w-16" />
@@ -30,7 +30,7 @@ export function DashboardSkeleton() {
         {Array.from({ length: 2 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-slate-200 bg-white p-6"
+            className="rounded-xl border border-border bg-white p-6"
           >
             <Skeleton className="mb-4 h-5 w-40" />
             <div className="space-y-3">

@@ -102,7 +102,7 @@ export function ServiceForm({
                       id="active"
                       checked={field.value}
                       onChange={field.onChange}
-                      className="h-4 w-4 rounded border-slate-300 text-teal-600"
+                      className="h-4 w-4 rounded border-border text-primary"
                     />
                   )}
                 />

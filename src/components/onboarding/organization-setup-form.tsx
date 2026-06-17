@@ -89,7 +89,7 @@ export function OrganizationSetupForm() {
           <div className="space-y-2">
             <Label htmlFor="slug">Endereço do negócio *</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">agendei.com/</span>
+              <span className="text-sm text-muted-foreground">agendei.com/</span>
               <Input id="slug" {...register("slug")} />
             </div>
             {errors.slug && (
