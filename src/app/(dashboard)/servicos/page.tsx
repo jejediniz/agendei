@@ -11,7 +11,7 @@ export default async function ServicosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Serviços"
-        description="Gerencie os serviços oferecidos"
+        description="Configure duração, preço e disponibilidade dos serviços"
         actionLabel="Novo serviço"
         actionHref="/servicos/novo"
       />

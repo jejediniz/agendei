@@ -13,3 +13,10 @@ export const clientSchema = z.object({
 });
 
 export type ClientFormData = z.infer<typeof clientSchema>;
+
+export const quickClientSchema = clientSchema.pick({
+  name: true,
+  phone: true,
+});
+
+export type QuickClientFormData = z.infer<typeof quickClientSchema>;

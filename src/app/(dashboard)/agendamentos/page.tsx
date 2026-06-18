@@ -31,7 +31,7 @@ export default async function AgendamentosPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Agendamentos"
-        description="Visualize e gerencie os agendamentos"
+        description="Visualize, confirme e acompanhe todos os agendamentos"
         actionLabel="Novo agendamento"
         actionHref="/agendamentos/novo"
       />

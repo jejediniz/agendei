@@ -7,10 +7,20 @@ import { Pencil, UserCog, UserX } from "lucide-react";
 import { toast } from "sonner";
 import type { Professional } from "@prisma/client";
 import { toggleProfessionalActive } from "@/lib/actions/professionals";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableElement,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from "@/components/layout/data-table";
 
 type ProfessionalTableProps = {
   professionals: Professional[];
@@ -56,7 +66,7 @@ export function ProfessionalTable({ professionals }: ProfessionalTableProps) {
       <EmptyState
         icon={UserCog}
         title="Nenhum profissional cadastrado"
-        description="Adicione profissionais para gerenciar horários e agendamentos."
+        description="Adicione os profissionais da sua equipe para definir horários e receber agendamentos."
         action={
           <Button asChild>
             <Link href="/profissionais/novo">Novo profissional</Link>
@@ -75,13 +85,16 @@ export function ProfessionalTable({ professionals }: ProfessionalTableProps) {
             className="rounded-xl border border-border bg-card p-4 shadow-warm"
           >
             <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="font-medium text-foreground">{professional.name}</p>
-                {professional.specialty && (
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {professional.specialty}
-                  </p>
-                )}
+              <div className="flex items-center gap-3">
+                <Avatar name={professional.name} size="md" />
+                <div>
+                  <p className="font-medium text-foreground">{professional.name}</p>
+                  {professional.specialty && (
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {professional.specialty}
+                    </p>
+                  )}
+                </div>
               </div>
               <Badge variant={professional.active ? "success" : "secondary"}>
                 {professional.active ? "Ativo" : "Inativo"}
@@ -108,29 +121,36 @@ export function ProfessionalTable({ professionals }: ProfessionalTableProps) {
         ))}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted text-left">
-              <th className="px-4 py-3 font-medium text-muted-foreground">Nome</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Especialidade</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
+      <DataTable>
+        <DataTableElement>
+          <DataTableHead>
+            <DataTableRow className="hover:bg-transparent">
+              <DataTableHeaderCell>Profissional</DataTableHeaderCell>
+              <DataTableHeaderCell>Especialidade</DataTableHeaderCell>
+              <DataTableHeaderCell>Status</DataTableHeaderCell>
+              <DataTableHeaderCell className="text-right">Ações</DataTableHeaderCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody>
             {professionals.map((professional) => (
-              <tr key={professional.id} className="border-b border-border/60 last:border-0">
-                <td className="px-4 py-3 font-medium text-foreground">{professional.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">
+              <DataTableRow key={professional.id}>
+                <DataTableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={professional.name} size="sm" />
+                    <span className="font-medium text-foreground">
+                      {professional.name}
+                    </span>
+                  </div>
+                </DataTableCell>
+                <DataTableCell className="text-muted-foreground">
                   {professional.specialty ?? "—"}
-                </td>
-                <td className="px-4 py-3">
+                </DataTableCell>
+                <DataTableCell>
                   <Badge variant={professional.active ? "success" : "secondary"}>
                     {professional.active ? "Ativo" : "Inativo"}
                   </Badge>
-                </td>
-                <td className="px-4 py-3">
+                </DataTableCell>
+                <DataTableCell>
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/profissionais/${professional.id}/editar`}>
@@ -146,12 +166,12 @@ export function ProfessionalTable({ professionals }: ProfessionalTableProps) {
                       <UserX className="h-4 w-4" />
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </DataTableCell>
+              </DataTableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </DataTableBody>
+        </DataTableElement>
+      </DataTable>
 
       <ConfirmDialog
         open={!!deactivateId}

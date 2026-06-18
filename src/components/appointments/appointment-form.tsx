@@ -28,8 +28,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { QuickClientDialog } from "@/components/clients/quick-client-dialog";
 import { AgendaWeekStrip } from "@/components/agenda/agenda-week-strip";
 import { ProfessionalSlotTimeGrid } from "@/components/booking/professional-slot-time-grid";
+import { Plus } from "lucide-react";
+
+type ClientOption = Pick<Client, "id" | "name">;
 
 type AppointmentFormProps = {
   clients: Client[];
@@ -44,6 +48,10 @@ export function AppointmentForm({
 }: AppointmentFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [clientList, setClientList] = useState<ClientOption[]>(
+    clients.map((c) => ({ id: c.id, name: c.name })),
+  );
+  const [quickClientOpen, setQuickClientOpen] = useState(false);
   const [slotsByProfessional, setSlotsByProfessional] = useState<Record<string, string[]>>({});
   const [loadingSlots, setLoadingSlots] = useState(false);
 
@@ -128,17 +136,35 @@ export function AppointmentForm({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Cliente *</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label>Cliente *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto px-2 py-1 text-primary"
+                  onClick={() => setQuickClientOpen(true)}
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Novo cliente
+                </Button>
+              </div>
               <Controller
                 name="clientId"
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o cliente" />
+                      <SelectValue
+                        placeholder={
+                          clientList.length === 0
+                            ? "Cadastre um cliente"
+                            : "Selecione o cliente"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((c) => (
+                      {clientList.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.name}
                         </SelectItem>
@@ -258,6 +284,14 @@ export function AppointmentForm({
           </div>
         </form>
       </CardContent>
+      <QuickClientDialog
+        open={quickClientOpen}
+        onOpenChange={setQuickClientOpen}
+        onCreated={(client) => {
+          setClientList((prev) => [...prev, client]);
+          setValue("clientId", client.id, { shouldValidate: true });
+        }}
+      />
     </Card>
   );
 }

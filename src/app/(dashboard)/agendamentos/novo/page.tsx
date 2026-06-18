@@ -18,9 +18,6 @@ export default async function NovoAgendamentoPage() {
   ]);
 
   const missing: { label: string; href: string; icon: typeof Users }[] = [];
-  if (clients.length === 0) {
-    missing.push({ label: "Cadastrar cliente", href: "/clientes/novo", icon: Users });
-  }
   if (services.length === 0) {
     missing.push({ label: "Cadastrar serviço", href: "/servicos/novo", icon: Scissors });
   }
@@ -42,7 +39,7 @@ export default async function NovoAgendamentoPage() {
         <EmptyState
           icon={Users}
           title="Antes de agendar, complete o cadastro"
-          description="Você precisa ter pelo menos um cliente, um serviço e um profissional ativo."
+          description="Para criar um agendamento, você precisa ter pelo menos um serviço e um profissional ativo. Clientes podem ser cadastrados durante o agendamento."
           action={
             <div className="flex flex-wrap justify-center gap-2">
               {missing.map((item) => (

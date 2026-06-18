@@ -15,17 +15,19 @@ export function PageHeader({
   actionHref,
 }: PageHeaderProps) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground">
+    <div className="flex flex-col gap-4 border-b border-border/50 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="space-y-1.5">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           {title}
         </h1>
         {description && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
       {actionLabel && actionHref && (
-        <Button asChild className="w-full sm:w-auto">
+        <Button asChild className="w-full shrink-0 sm:w-auto">
           <Link href={actionHref}>{actionLabel}</Link>
         </Button>
       )}

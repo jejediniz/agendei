@@ -11,7 +11,7 @@ export default async function ProfissionaisPage() {
     <div className="space-y-6">
       <PageHeader
         title="Profissionais"
-        description="Gerencie a equipe de atendimento"
+        description="Organize sua equipe e quem atende cada serviço"
         actionLabel="Novo profissional"
         actionHref="/profissionais/novo"
       />

@@ -18,7 +18,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Clientes"
-        description="Gerencie os clientes do estabelecimento"
+        description="Cadastre e acompanhe os clientes do seu negócio"
         actionLabel="Novo cliente"
         actionHref="/clientes/novo"
       />
