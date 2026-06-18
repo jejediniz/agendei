@@ -1,24 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf7f2;
-  --foreground: #1c1917;
-  --card: #ffffff;
-  --card-foreground: #1c1917;
+  --background: #f7f3ec;
+  --foreground: #292524;
+  --card: #fefcf9;
+  --card-foreground: #292524;
   --primary: #b85c38;
   --primary-hover: #9a4d2f;
   --primary-dark: #7a3d26;
-  --primary-light: #f5e8e2;
+  --primary-light: #f3e4dc;
   --primary-foreground: #ffffff;
-  --muted: #f5f0e8;
-  --muted-foreground: #78716c;
-  --border: #e7e0d8;
+  --muted: #f0ebe3;
+  --muted-foreground: #6b6560;
+  --border: #e5ddd3;
   --ring: #b85c38;
-  --surface: #fdfbf7;
+  --surface: #faf6f0;
   --accent: #5b7b6a;
-  --accent-light: #e8f0eb;
-  --shadow-warm: 0 1px 3px rgba(28, 25, 23, 0.06), 0 4px 16px rgba(28, 25, 23, 0.04);
-  --shadow-warm-lg: 0 4px 24px rgba(28, 25, 23, 0.08);
+  --accent-light: #e4ede8;
+  --shadow-warm: 0 1px 2px rgba(41, 37, 36, 0.04), 0 2px 8px rgba(41, 37, 36, 0.03);
+  --shadow-warm-lg: 0 4px 20px rgba(41, 37, 36, 0.07);
+  --shadow-warm-md: 0 2px 12px rgba(41, 37, 36, 0.05);
 }
 
 @theme inline {
@@ -46,11 +47,17 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
-  background-image: radial-gradient(
-    ellipse 80% 50% at 50% -20%,
-    rgba(184, 92, 56, 0.06),
-    transparent
-  );
+  background-image:
+    radial-gradient(
+      ellipse 90% 60% at 50% -30%,
+      rgba(184, 92, 56, 0.07),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 100% 100%,
+      rgba(184, 92, 56, 0.03),
+      transparent
+    );
 }
 
 .font-display {
@@ -63,6 +70,10 @@ body {
 
 .shadow-warm-lg {
   box-shadow: var(--shadow-warm-lg);
+}
+
+.shadow-warm-md {
+  box-shadow: var(--shadow-warm-md);
 }
 
 .pattern-dots {
