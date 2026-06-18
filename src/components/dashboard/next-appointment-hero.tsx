@@ -1,7 +1,13 @@
-import Link from "next/link";
-import { CalendarClock, Clock } from "lucide-react";
+"use client";
+
+import { CalendarClock, Clock, MessageCircle, Phone } from "lucide-react";
 import type { AppointmentWithRelations } from "@/lib/queries/appointments";
-import { formatDate, formatTime } from "@/lib/utils/date";
+import { formatTime } from "@/lib/utils/date";
+import {
+  buildTelUrl,
+  buildWhatsAppUrl,
+  isValidContactPhone,
+} from "@/lib/utils/contact-links";
 import { StatusBadge } from "@/components/appointments/status-badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,9 +16,18 @@ import { EmptyState } from "@/components/layout/empty-state";
 
 type NextAppointmentHeroProps = {
   appointment: AppointmentWithRelations | null;
+  onViewDetails?: (appointment: AppointmentWithRelations) => void;
 };
 
-export function NextAppointmentHero({ appointment }: NextAppointmentHeroProps) {
+function buildWhatsAppMessage(appointment: AppointmentWithRelations): string {
+  const time = formatTime(appointment.startAt);
+  return `Olá, ${appointment.client.name}! Passando para confirmar seu atendimento. Serviço: ${appointment.service.name}. Horário: ${time}.`;
+}
+
+export function NextAppointmentHero({
+  appointment,
+  onViewDetails,
+}: NextAppointmentHeroProps) {
   if (!appointment) {
     return (
       <Card className="overflow-hidden border-primary/15 bg-gradient-to-br from-card via-card to-primary-light/30">
@@ -20,13 +35,8 @@ export function NextAppointmentHero({ appointment }: NextAppointmentHeroProps) {
           <EmptyState
             compact
             icon={CalendarClock}
-            title="Nenhum atendimento próximo"
-            description="Quando houver agendamentos marcados ou confirmados, o próximo aparecerá aqui para você se preparar."
-            action={
-              <Button asChild>
-                <Link href="/agendamentos/novo">Criar agendamento</Link>
-              </Button>
-            }
+            title="Nenhum próximo atendimento para hoje"
+            description="Quando houver horários marcados ou confirmados ainda por vir, o próximo aparecerá aqui."
             className="border-none bg-transparent"
           />
         </CardContent>
@@ -34,17 +44,21 @@ export function NextAppointmentHero({ appointment }: NextAppointmentHeroProps) {
     );
   }
 
-  const isToday =
-    formatDate(appointment.startAt) === formatDate(new Date());
+  const phone = appointment.client.phone;
+  const hasPhone = isValidContactPhone(phone);
+  const whatsAppUrl = hasPhone
+    ? buildWhatsAppUrl(phone, buildWhatsAppMessage(appointment))
+    : null;
+  const telUrl = hasPhone ? buildTelUrl(phone) : null;
 
   return (
     <Card className="overflow-hidden border-primary/15 bg-gradient-to-br from-card via-card to-primary-light/25 shadow-warm-md">
       <CardContent className="p-6 sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-4 sm:gap-5">
             <div className="flex flex-col items-center justify-center rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-warm sm:px-5">
               <span className="text-xs font-medium uppercase tracking-wide opacity-90">
-                {isToday ? "Hoje" : formatDate(appointment.startAt, "EEE")}
+                Hoje
               </span>
               <span className="font-display text-3xl font-bold tabular-nums sm:text-4xl">
                 {formatTime(appointment.startAt)}
@@ -70,24 +84,51 @@ export function NextAppointmentHero({ appointment }: NextAppointmentHeroProps) {
                   <Clock className="h-4 w-4 text-primary/70" />
                   {appointment.professional.name}
                 </span>
-                {!isToday && (
-                  <span>{formatDate(appointment.startAt, "dd 'de' MMMM")}</span>
+                {hasPhone && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Phone className="h-4 w-4 text-primary/70" />
+                    {phone}
+                  </span>
                 )}
                 <StatusBadge status={appointment.status} />
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-            <Button asChild className="w-full sm:w-auto lg:w-full">
-              <Link href="/agenda">Ver agenda de hoje</Link>
-            </Button>
-            <Button
-              variant="outline"
-              asChild
-              className="w-full sm:w-auto lg:w-full"
-            >
-              <Link href="/agendamentos">Todos os agendamentos</Link>
-            </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:flex-col lg:items-stretch">
+            {onViewDetails && (
+              <Button
+                className="w-full sm:w-auto lg:w-full"
+                onClick={() => onViewDetails(appointment)}
+              >
+                Ver detalhes
+              </Button>
+            )}
+            {whatsAppUrl ? (
+              <Button variant="outline" className="w-full sm:w-auto lg:w-full" asChild>
+                <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-1.5 h-4 w-4" />
+                  WhatsApp
+                </a>
+              </Button>
+            ) : (
+              <Button variant="outline" className="w-full sm:w-auto lg:w-full" disabled>
+                <MessageCircle className="mr-1.5 h-4 w-4" />
+                WhatsApp
+              </Button>
+            )}
+            {telUrl ? (
+              <Button variant="outline" className="w-full sm:w-auto lg:w-full" asChild>
+                <a href={telUrl}>
+                  <Phone className="mr-1.5 h-4 w-4" />
+                  Ligar
+                </a>
+              </Button>
+            ) : (
+              <Button variant="outline" className="w-full sm:w-auto lg:w-full" disabled>
+                <Phone className="mr-1.5 h-4 w-4" />
+                Ligar
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
