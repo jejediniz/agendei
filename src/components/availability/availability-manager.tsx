@@ -233,7 +233,7 @@ export function AvailabilityManager({
         <EmptyState
           icon={Clock}
           title="Nenhum horário cadastrado"
-          description="Defina os dias e horários de atendimento de cada profissional."
+          description="Defina os dias e horários de atendimento de cada profissional para liberar agendamentos."
         />
       ) : (
         Object.entries(grouped).map(([name, items]) => (

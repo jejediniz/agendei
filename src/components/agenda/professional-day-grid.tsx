@@ -64,8 +64,9 @@ export function ProfessionalDayGrid({
   if (visibleProfessionals.length === 0) {
     return (
       <div className="rounded-2xl border border-border/80 bg-card px-6 py-16 text-center shadow-warm">
-        <p className="text-sm text-muted-foreground">
-          Nenhum profissional ativo para exibir na agenda.
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Nenhum profissional ativo para exibir na agenda. Cadastre ou ative um
+          profissional para começar.
         </p>
         <Link
           href="/profissionais/novo"
@@ -128,8 +129,9 @@ export function ProfessionalDayGrid({
         </div>
 
         {dayAppointments.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card px-4 py-12 text-center text-sm text-muted-foreground">
-            Nenhum agendamento neste dia.
+          <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 px-4 py-12 text-center text-sm leading-relaxed text-muted-foreground">
+            Nenhum agendamento neste dia. Quando houver horários marcados, eles
+            aparecerão aqui na agenda.
           </div>
         ) : (
           <div className="space-y-3">
