@@ -10,9 +10,19 @@ import type { AppointmentWithRelations } from "@/lib/queries/appointments";
 import { updateAppointmentStatus } from "@/lib/actions/appointments";
 import { formatDateTime } from "@/lib/utils/date";
 import { StatusBadge } from "./status-badge";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableElement,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from "@/components/layout/data-table";
 
 type AppointmentTableProps = {
   appointments: AppointmentWithRelations[];
@@ -141,7 +151,7 @@ export function AppointmentTable({ appointments }: AppointmentTableProps) {
       <EmptyState
         icon={Calendar}
         title="Nenhum agendamento encontrado"
-        description="Crie um novo agendamento ou ajuste os filtros."
+        description="Não há agendamentos com os filtros atuais. Crie um novo ou ajuste data, profissional ou status."
         action={
           <Button asChild>
             <Link href="/agendamentos/novo">Novo agendamento</Link>
@@ -170,7 +180,10 @@ export function AppointmentTable({ appointments }: AppointmentTableProps) {
               </p>
               <StatusBadge status={apt.status} />
             </div>
-            <p className="mt-2 font-medium text-foreground">{apt.client.name}</p>
+            <div className="mt-2 flex items-center gap-2">
+              <Avatar name={apt.client.name} size="sm" />
+              <p className="font-medium text-foreground">{apt.client.name}</p>
+            </div>
             <p className="text-sm text-muted-foreground">{apt.professional.name}</p>
             <p className="text-sm text-muted-foreground">{apt.service.name}</p>
             <div className="mt-3 flex flex-col gap-2">
@@ -180,46 +193,55 @@ export function AppointmentTable({ appointments }: AppointmentTableProps) {
         ))}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted text-left">
-              <th className="px-4 py-3 font-medium text-muted-foreground">Data/Hora</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Cliente</th>
-              <th className="hidden px-4 py-3 font-medium text-muted-foreground lg:table-cell">Profissional</th>
-              <th className="hidden px-4 py-3 font-medium text-muted-foreground xl:table-cell">Serviço</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
+      <DataTable>
+        <DataTableElement>
+          <DataTableHead>
+            <DataTableRow className="hover:bg-transparent">
+              <DataTableHeaderCell>Data/Hora</DataTableHeaderCell>
+              <DataTableHeaderCell>Cliente</DataTableHeaderCell>
+              <DataTableHeaderCell className="hidden lg:table-cell">
+                Profissional
+              </DataTableHeaderCell>
+              <DataTableHeaderCell className="hidden xl:table-cell">
+                Serviço
+              </DataTableHeaderCell>
+              <DataTableHeaderCell>Status</DataTableHeaderCell>
+              <DataTableHeaderCell className="text-right">Ações</DataTableHeaderCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody>
             {appointments.map((apt) => (
-              <tr key={apt.id} className="border-b border-border/60 last:border-0">
-                <td className="px-4 py-3 text-foreground">
+              <DataTableRow key={apt.id}>
+                <DataTableCell className="tabular-nums text-foreground">
                   {formatDateTime(apt.startAt)}
-                </td>
-                <td className="px-4 py-3 font-medium text-foreground">
-                  {apt.client.name}
-                </td>
-                <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                </DataTableCell>
+                <DataTableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={apt.client.name} size="sm" />
+                    <span className="font-medium text-foreground">
+                      {apt.client.name}
+                    </span>
+                  </div>
+                </DataTableCell>
+                <DataTableCell className="hidden text-muted-foreground lg:table-cell">
                   {apt.professional.name}
-                </td>
-                <td className="hidden px-4 py-3 text-muted-foreground xl:table-cell">
+                </DataTableCell>
+                <DataTableCell className="hidden text-muted-foreground xl:table-cell">
                   {apt.service.name}
-                </td>
-                <td className="px-4 py-3">
+                </DataTableCell>
+                <DataTableCell>
                   <StatusBadge status={apt.status} />
-                </td>
-                <td className="px-4 py-3">
+                </DataTableCell>
+                <DataTableCell>
                   <div className="flex flex-col gap-1 sm:flex-row sm:justify-end">
                     <AppointmentActions apt={apt} onStatus={handleStatus} />
                   </div>
-                </td>
-              </tr>
+                </DataTableCell>
+              </DataTableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </DataTableBody>
+        </DataTableElement>
+      </DataTable>
 
       {dialogConfig && (
         <ConfirmDialog

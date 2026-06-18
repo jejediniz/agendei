@@ -12,6 +12,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableElement,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from "@/components/layout/data-table";
 
 type ServiceTableProps = {
   services: SerializableService[];
@@ -57,7 +66,7 @@ export function ServiceTable({ services }: ServiceTableProps) {
       <EmptyState
         icon={Scissors}
         title="Nenhum serviço cadastrado"
-        description="Cadastre os serviços oferecidos pelo estabelecimento."
+        description="Cadastre os serviços que seu negócio oferece para que clientes possam agendar online ou pelo painel."
         action={
           <Button asChild>
             <Link href="/servicos/novo">Novo serviço</Link>
@@ -105,31 +114,35 @@ export function ServiceTable({ services }: ServiceTableProps) {
         ))}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted text-left">
-              <th className="px-4 py-3 font-medium text-muted-foreground">Serviço</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Duração</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Preço</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
+      <DataTable>
+        <DataTableElement>
+          <DataTableHead>
+            <DataTableRow className="hover:bg-transparent">
+              <DataTableHeaderCell>Serviço</DataTableHeaderCell>
+              <DataTableHeaderCell>Duração</DataTableHeaderCell>
+              <DataTableHeaderCell>Preço</DataTableHeaderCell>
+              <DataTableHeaderCell>Status</DataTableHeaderCell>
+              <DataTableHeaderCell className="text-right">Ações</DataTableHeaderCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody>
             {services.map((service) => (
-              <tr key={service.id} className="border-b border-border/60 last:border-0">
-                <td className="px-4 py-3 font-medium text-foreground">{service.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{service.durationMin} min</td>
-                <td className="px-4 py-3 text-muted-foreground">
+              <DataTableRow key={service.id}>
+                <DataTableCell className="font-medium text-foreground">
+                  {service.name}
+                </DataTableCell>
+                <DataTableCell className="text-muted-foreground">
+                  {service.durationMin} min
+                </DataTableCell>
+                <DataTableCell className="text-muted-foreground">
                   {formatCurrency(service.price)}
-                </td>
-                <td className="px-4 py-3">
+                </DataTableCell>
+                <DataTableCell>
                   <Badge variant={service.active ? "success" : "secondary"}>
                     {service.active ? "Ativo" : "Inativo"}
                   </Badge>
-                </td>
-                <td className="px-4 py-3">
+                </DataTableCell>
+                <DataTableCell>
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/servicos/${service.id}/editar`}>
@@ -145,12 +158,12 @@ export function ServiceTable({ services }: ServiceTableProps) {
                       <ToggleLeft className="h-4 w-4" />
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </DataTableCell>
+              </DataTableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </DataTableBody>
+        </DataTableElement>
+      </DataTable>
 
       <ConfirmDialog
         open={!!deactivateId}
