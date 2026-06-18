@@ -175,7 +175,7 @@ export function LoginForm({
 
   if (status === "loading") {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-border/60 shadow-warm-md">
         <CardContent className="py-10 text-center text-sm text-muted-foreground">
           Carregando...
         </CardContent>
@@ -185,7 +185,7 @@ export function LoginForm({
 
   if (isBusinessLoggedIn && session?.user.organizationId) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-border/60 shadow-warm-md">
         <CardContent className="py-10 text-center text-sm text-muted-foreground">
           Carregando...
         </CardContent>
@@ -195,7 +195,7 @@ export function LoginForm({
 
   if (isBusinessLoggedIn && !session?.user.organizationId) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-border/60 shadow-warm-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-light">
             <BriefcaseBusiness className="h-6 w-6 text-primary" />
@@ -225,7 +225,7 @@ export function LoginForm({
 
   if (isCustomerLoggedIn) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-border/60 shadow-warm-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-light">
             <CalendarCheck className="h-6 w-6 text-primary" />
@@ -273,7 +273,7 @@ export function LoginForm({
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md border-border/60 shadow-warm-md">
       <CardHeader className="text-center">
         <CardTitle className="font-display text-2xl text-primary">Agendei</CardTitle>
         <CardDescription>Como você quer entrar?</CardDescription>
