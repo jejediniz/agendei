@@ -10,114 +10,120 @@ import {
 import { requireSessionContext } from "@/lib/tenant/context";
 import { getDashboardData } from "@/lib/queries/dashboard";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { StatusBadge } from "@/components/appointments/status-badge";
+import { NextAppointmentHero } from "@/components/dashboard/next-appointment-hero";
+import { DashboardAppointmentList } from "@/components/dashboard/dashboard-appointment-list";
 import { SubscriptionBanner } from "@/components/billing/subscription-banner";
-import { formatDateTime } from "@/lib/utils/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
   const ctx = await requireSessionContext();
   const data = await getDashboardData(ctx.organizationId);
+  const nextAppointment = data.upcomingAppointments[0] ?? null;
 
   return (
     <div className="space-y-8">
-      <div>
-        <SubscriptionBanner />
-      </div>
+      <SubscriptionBanner />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Clientes" value={data.clientsCount} icon={Users} />
-        <StatCard
-          title="Profissionais ativos"
-          value={data.professionalsCount}
-          icon={UserCog}
-        />
-        <StatCard
-          title="Serviços ativos"
-          value={data.servicesCount}
-          icon={Scissors}
-        />
-        <StatCard
-          title="Agendamentos hoje"
-          value={data.stats.todayCount}
-          icon={Calendar}
-        />
-      </div>
+      <NextAppointmentHero appointment={nextAppointment} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <StatCard
-          title="Confirmados"
-          value={data.stats.confirmedCount}
-          icon={CheckCircle}
-          description="Total de agendamentos confirmados"
-        />
-        <StatCard
-          title="Cancelados"
-          value={data.stats.cancelledCount}
-          icon={XCircle}
-          description="Total de agendamentos cancelados"
-        />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Agendamentos de hoje</CardTitle>
+      <div className="grid gap-6 xl:grid-cols-5">
+        <Card className="xl:col-span-3">
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-lg">Agenda de hoje</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {data.todayAppointments.length === 0
+                  ? "Seu dia está livre por enquanto"
+                  : `${data.todayAppointments.length} atendimento${data.todayAppointments.length === 1 ? "" : "s"} programado${data.todayAppointments.length === 1 ? "" : "s"}`}
+              </p>
+            </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/agenda">Ver agenda</Link>
+              <Link href="/agenda">Abrir agenda</Link>
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {data.todayAppointments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum agendamento hoje.</p>
-            ) : (
-              data.todayAppointments.map((apt) => (
-                <div
-                  key={apt.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{apt.client.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(apt.startAt)} · {apt.professional.name}
-                    </p>
-                  </div>
-                  <StatusBadge status={apt.status} />
-                </div>
-              ))
-            )}
+          <CardContent>
+            <DashboardAppointmentList
+              appointments={data.todayAppointments}
+              emptyTitle="Nenhum agendamento para hoje"
+              emptyDescription="Quando seus clientes marcarem horários, eles aparecerão aqui. Você também pode criar um agendamento manualmente."
+              emptyActionHref="/agendamentos/novo"
+              emptyActionLabel="Criar agendamento"
+              highlightNext
+            />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Próximos atendimentos</CardTitle>
+        <Card className="xl:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-lg">Próximos atendimentos</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Agendamentos marcados e confirmados
+              </p>
+            </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/agendamentos">Ver todos</Link>
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {data.upcomingAppointments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum atendimento próximo.</p>
-            ) : (
-              data.upcomingAppointments.map((apt) => (
-                <div
-                  key={apt.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{apt.client.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(apt.startAt)} · {apt.service.name}
-                    </p>
-                  </div>
-                  <StatusBadge status={apt.status} />
-                </div>
-              ))
-            )}
+          <CardContent>
+            <DashboardAppointmentList
+              appointments={data.upcomingAppointments.slice(0, 5)}
+              emptyTitle="Nenhum atendimento próximo"
+              emptyDescription="Os próximos horários confirmados ou pendentes aparecerão nesta lista."
+              emptyActionHref="/agendamentos/novo"
+              emptyActionLabel="Criar agendamento"
+            />
           </CardContent>
         </Card>
+      </div>
+
+      <div>
+        <h2 className="mb-4 font-display text-lg font-semibold text-foreground">
+          Resumo do negócio
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            compact
+            title="Clientes"
+            value={data.clientsCount}
+            icon={Users}
+          />
+          <StatCard
+            compact
+            title="Profissionais ativos"
+            value={data.professionalsCount}
+            icon={UserCog}
+          />
+          <StatCard
+            compact
+            title="Serviços ativos"
+            value={data.servicesCount}
+            icon={Scissors}
+          />
+          <StatCard
+            compact
+            title="Agendamentos hoje"
+            value={data.stats.todayCount}
+            icon={Calendar}
+          />
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <StatCard
+            compact
+            title="Confirmados"
+            value={data.stats.confirmedCount}
+            icon={CheckCircle}
+            description="Total de agendamentos confirmados"
+          />
+          <StatCard
+            compact
+            title="Cancelados"
+            value={data.stats.cancelledCount}
+            icon={XCircle}
+            description="Total de agendamentos cancelados"
+          />
+        </div>
       </div>
     </div>
   );
