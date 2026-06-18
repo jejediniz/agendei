@@ -14,7 +14,7 @@ export async function generateUniqueSlug(
   base: string,
   exists: (slug: string) => Promise<boolean>,
 ): Promise<string> {
-  let slug = slugify(base) || "negocio";
+  const slug = slugify(base) || "negocio";
   let suffix = 0;
 
   while (await exists(suffix === 0 ? slug : `${slug}-${suffix}`)) {
