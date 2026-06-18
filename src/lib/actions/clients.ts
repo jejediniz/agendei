@@ -33,6 +33,7 @@ export async function createClient(
   });
 
   revalidatePath("/clientes");
+  revalidatePath("/agendamentos/novo");
   return { success: true, id: client.id };
 }
 
