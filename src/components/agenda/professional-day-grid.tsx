@@ -1,16 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import type { AppointmentWithRelations } from "@/lib/queries/appointments";
 import type { Availability, Professional } from "@prisma/client";
 import { Users } from "lucide-react";
 import {
   APPOINTMENT_STATUS_COLORS,
-  APPOINTMENT_STATUS_LABELS,
+  APPOINTMENT_STATUS_DOT_COLORS,
 } from "@/lib/constants/appointment-status";
+import { StatusBadge } from "@/components/appointments/status-badge";
 import {
   formatTime,
   getDayOfWeek,
   minutesFromDateInTimezone,
-  toDateInputValue,
   combineDateAndTime,
 } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
@@ -31,7 +33,102 @@ type ProfessionalDayGridProps = {
   date: string;
   highlightProfessionalId?: string;
   onProfessionalFilter?: (professionalId: string | null) => void;
+  onAppointmentClick?: (appointment: AppointmentWithRelations) => void;
 };
+
+function AgendaAppointmentCard({
+  appointment,
+  showProfessional = true,
+  compact = false,
+  onClick,
+}: {
+  appointment: AppointmentWithRelations;
+  showProfessional?: boolean;
+  compact?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative w-full cursor-pointer overflow-hidden rounded-xl border text-left shadow-warm transition-all",
+        "hover:shadow-warm-md active:scale-[0.99]",
+        APPOINTMENT_STATUS_COLORS[appointment.status],
+        compact ? "h-full px-2 py-1.5 pl-3" : "p-4 pl-5",
+      )}
+    >
+      <span
+        className={cn(
+          "absolute bottom-0 left-0 top-0 w-1",
+          APPOINTMENT_STATUS_DOT_COLORS[appointment.status],
+        )}
+        aria-hidden
+      />
+      <div
+        className={cn(
+          "flex items-start justify-between gap-2",
+          compact && "items-center gap-1",
+        )}
+      >
+        <p
+          className={cn(
+            "font-display font-semibold tabular-nums",
+            compact ? "text-[10px] font-bold leading-tight" : "text-base",
+          )}
+        >
+          {formatTime(appointment.startAt)} – {formatTime(appointment.endAt)}
+        </p>
+        {!compact && <StatusBadge status={appointment.status} />}
+      </div>
+      <p
+        className={cn(
+          "font-medium text-foreground",
+          compact
+            ? "truncate text-[10px] font-semibold leading-tight"
+            : "mt-1",
+        )}
+      >
+        {appointment.client.name}
+      </p>
+      <p
+        className={cn(
+          "text-muted-foreground",
+          compact
+            ? "truncate text-[9px] leading-tight opacity-80"
+            : "text-sm",
+        )}
+      >
+        {appointment.service.name}
+      </p>
+      {showProfessional && (
+        <p
+          className={cn(
+            "text-muted-foreground",
+            compact
+              ? "truncate text-[9px] leading-tight opacity-70"
+              : "mt-1 text-xs",
+          )}
+        >
+          {appointment.professional.name}
+        </p>
+      )}
+      {compact && (
+        <div className="mt-0.5 flex items-center gap-1">
+          <span
+            className={cn(
+              "h-1.5 w-1.5 shrink-0 rounded-full",
+              APPOINTMENT_STATUS_DOT_COLORS[appointment.status],
+            )}
+          />
+          <span className="truncate text-[9px] leading-tight opacity-70">
+            {appointment.professional.name.split(" ")[0]}
+          </span>
+        </div>
+      )}
+    </button>
+  );
+}
 
 export function ProfessionalDayGrid({
   professionals,
@@ -40,6 +137,7 @@ export function ProfessionalDayGrid({
   date,
   highlightProfessionalId,
   onProfessionalFilter,
+  onAppointmentClick,
 }: ProfessionalDayGridProps) {
   const dayOfWeek = getDayOfWeek(combineDateAndTime(date, "12:00"));
   const { startHour, endHour } = resolveAgendaGridHours(
@@ -136,28 +234,11 @@ export function ProfessionalDayGrid({
         ) : (
           <div className="space-y-3">
             {dayAppointments.map((apt) => (
-              <Link
+              <AgendaAppointmentCard
                 key={apt.id}
-                href={`/agendamentos?data=${toDateInputValue(new Date(apt.startAt))}`}
-                className={cn(
-                  "block rounded-2xl border p-4 shadow-warm transition-opacity active:opacity-90",
-                  APPOINTMENT_STATUS_COLORS[apt.status],
-                )}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-display text-base font-semibold tabular-nums">
-                    {formatTime(apt.startAt)} – {formatTime(apt.endAt)}
-                  </p>
-                  <span className="shrink-0 rounded-full bg-card/60 px-2 py-0.5 text-[10px] font-medium">
-                    {APPOINTMENT_STATUS_LABELS[apt.status]}
-                  </span>
-                </div>
-                <p className="mt-1 font-medium text-foreground">{apt.client.name}</p>
-                <p className="text-sm text-muted-foreground">{apt.service.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {apt.professional.name}
-                </p>
-              </Link>
+                appointment={apt}
+                onClick={() => onAppointmentClick?.(apt)}
+              />
             ))}
           </div>
         )}
@@ -169,6 +250,7 @@ export function ProfessionalDayGrid({
         appointments={appointments}
         highlightProfessionalId={highlightProfessionalId}
         onProfessionalFilter={onProfessionalFilter}
+        onAppointmentClick={onAppointmentClick}
         timeLabels={timeLabels}
         gridStartMinutes={gridStartMinutes}
         gridEndMinutes={gridEndMinutes}
@@ -192,6 +274,7 @@ function DesktopAgendaGrid({
   appointments,
   highlightProfessionalId,
   onProfessionalFilter,
+  onAppointmentClick,
   timeLabels,
   gridStartMinutes,
   gridEndMinutes,
@@ -202,6 +285,7 @@ function DesktopAgendaGrid({
   appointments: AppointmentWithRelations[];
   highlightProfessionalId?: string;
   onProfessionalFilter?: (professionalId: string | null) => void;
+  onAppointmentClick?: (appointment: AppointmentWithRelations) => void;
   timeLabels: string[];
   gridStartMinutes: number;
   gridEndMinutes: number;
@@ -357,29 +441,18 @@ function DesktopAgendaGrid({
                         );
 
                         return (
-                          <Link
+                          <div
                             key={apt.id}
-                            href={`/agendamentos?data=${toDateInputValue(new Date(apt.startAt))}`}
-                            className={cn(
-                              "absolute inset-x-0.5 z-10 block overflow-hidden rounded-md border px-1.5 py-1 transition-opacity hover:opacity-90",
-                              APPOINTMENT_STATUS_COLORS[apt.status],
-                            )}
+                            className="absolute inset-x-0.5 z-10"
                             style={{ top: top + 1, height }}
-                            title={`${apt.client.name} — ${apt.service.name}`}
                           >
-                            <p className="truncate text-[10px] font-bold leading-tight">
-                              {formatTime(apt.startAt)} – {formatTime(apt.endAt)}
-                            </p>
-                            <p className="truncate text-[10px] font-semibold leading-tight">
-                              {apt.client.name}
-                            </p>
-                            <p className="truncate text-[9px] leading-tight opacity-80">
-                              {apt.service.name}
-                            </p>
-                            <p className="truncate text-[9px] leading-tight opacity-70">
-                              {APPOINTMENT_STATUS_LABELS[apt.status]}
-                            </p>
-                          </Link>
+                            <AgendaAppointmentCard
+                              appointment={apt}
+                              showProfessional={false}
+                              compact
+                              onClick={() => onAppointmentClick?.(apt)}
+                            />
+                          </div>
                         );
                       })}
                     </div>
