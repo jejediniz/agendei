@@ -70,6 +70,38 @@ export async function getAppointments(
   return appointments.map(serializeAppointment);
 }
 
+export async function getAppointmentsInRange(
+  organizationId: string,
+  start: Date,
+  end: Date,
+  filters?: { professionalId?: string; includeCancelled?: boolean },
+): Promise<AppointmentWithRelations[]> {
+  const where: Prisma.AppointmentWhereInput = {
+    ...orgWhere(organizationId),
+    startAt: { gte: start, lte: end },
+  };
+
+  if (filters?.professionalId) {
+    where.professionalId = filters.professionalId;
+  }
+
+  if (!filters?.includeCancelled) {
+    where.status = { not: AppointmentStatus.CANCELLED };
+  }
+
+  const appointments = await prisma.appointment.findMany({
+    where,
+    include: {
+      client: true,
+      professional: true,
+      service: true,
+    },
+    orderBy: { startAt: "asc" },
+  });
+
+  return appointments.map(serializeAppointment);
+}
+
 export async function getTodayAppointments(
   organizationId: string,
 ): Promise<AppointmentWithRelations[]> {

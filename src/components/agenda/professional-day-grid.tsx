@@ -4,13 +4,8 @@ import Link from "next/link";
 import type { AppointmentWithRelations } from "@/lib/queries/appointments";
 import type { Availability, Professional } from "@prisma/client";
 import { Users } from "lucide-react";
+import { AgendaAppointmentCard } from "@/components/agenda/agenda-appointment-card";
 import {
-  APPOINTMENT_STATUS_COLORS,
-  APPOINTMENT_STATUS_DOT_COLORS,
-} from "@/lib/constants/appointment-status";
-import { StatusBadge } from "@/components/appointments/status-badge";
-import {
-  formatTime,
   getDayOfWeek,
   minutesFromDateInTimezone,
   combineDateAndTime,
@@ -34,101 +29,8 @@ type ProfessionalDayGridProps = {
   highlightProfessionalId?: string;
   onProfessionalFilter?: (professionalId: string | null) => void;
   onAppointmentClick?: (appointment: AppointmentWithRelations) => void;
+  onSlotClick?: (professionalId: string, time: string) => void;
 };
-
-function AgendaAppointmentCard({
-  appointment,
-  showProfessional = true,
-  compact = false,
-  onClick,
-}: {
-  appointment: AppointmentWithRelations;
-  showProfessional?: boolean;
-  compact?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "relative w-full cursor-pointer overflow-hidden rounded-xl border text-left shadow-warm transition-all",
-        "hover:shadow-warm-md active:scale-[0.99]",
-        APPOINTMENT_STATUS_COLORS[appointment.status],
-        compact ? "h-full px-2 py-1.5 pl-3" : "p-4 pl-5",
-      )}
-    >
-      <span
-        className={cn(
-          "absolute bottom-0 left-0 top-0 w-1",
-          APPOINTMENT_STATUS_DOT_COLORS[appointment.status],
-        )}
-        aria-hidden
-      />
-      <div
-        className={cn(
-          "flex items-start justify-between gap-2",
-          compact && "items-center gap-1",
-        )}
-      >
-        <p
-          className={cn(
-            "font-display font-semibold tabular-nums",
-            compact ? "text-[10px] font-bold leading-tight" : "text-base",
-          )}
-        >
-          {formatTime(appointment.startAt)} – {formatTime(appointment.endAt)}
-        </p>
-        {!compact && <StatusBadge status={appointment.status} />}
-      </div>
-      <p
-        className={cn(
-          "font-medium text-foreground",
-          compact
-            ? "truncate text-[10px] font-semibold leading-tight"
-            : "mt-1",
-        )}
-      >
-        {appointment.client.name}
-      </p>
-      <p
-        className={cn(
-          "text-muted-foreground",
-          compact
-            ? "truncate text-[9px] leading-tight opacity-80"
-            : "text-sm",
-        )}
-      >
-        {appointment.service.name}
-      </p>
-      {showProfessional && (
-        <p
-          className={cn(
-            "text-muted-foreground",
-            compact
-              ? "truncate text-[9px] leading-tight opacity-70"
-              : "mt-1 text-xs",
-          )}
-        >
-          {appointment.professional.name}
-        </p>
-      )}
-      {compact && (
-        <div className="mt-0.5 flex items-center gap-1">
-          <span
-            className={cn(
-              "h-1.5 w-1.5 shrink-0 rounded-full",
-              APPOINTMENT_STATUS_DOT_COLORS[appointment.status],
-            )}
-          />
-          <span className="truncate text-[9px] leading-tight opacity-70">
-            {appointment.professional.name.split(" ")[0]}
-          </span>
-        </div>
-      )}
-    </button>
-  );
-}
 
 export function ProfessionalDayGrid({
   professionals,
@@ -138,6 +40,7 @@ export function ProfessionalDayGrid({
   highlightProfessionalId,
   onProfessionalFilter,
   onAppointmentClick,
+  onSlotClick,
 }: ProfessionalDayGridProps) {
   const dayOfWeek = getDayOfWeek(combineDateAndTime(date, "12:00"));
   const { startHour, endHour } = resolveAgendaGridHours(
@@ -251,6 +154,7 @@ export function ProfessionalDayGrid({
         highlightProfessionalId={highlightProfessionalId}
         onProfessionalFilter={onProfessionalFilter}
         onAppointmentClick={onAppointmentClick}
+        onSlotClick={onSlotClick}
         timeLabels={timeLabels}
         gridStartMinutes={gridStartMinutes}
         gridEndMinutes={gridEndMinutes}
@@ -275,6 +179,7 @@ function DesktopAgendaGrid({
   highlightProfessionalId,
   onProfessionalFilter,
   onAppointmentClick,
+  onSlotClick,
   timeLabels,
   gridStartMinutes,
   gridEndMinutes,
@@ -286,6 +191,7 @@ function DesktopAgendaGrid({
   highlightProfessionalId?: string;
   onProfessionalFilter?: (professionalId: string | null) => void;
   onAppointmentClick?: (appointment: AppointmentWithRelations) => void;
+  onSlotClick?: (professionalId: string, time: string) => void;
   timeLabels: string[];
   gridStartMinutes: number;
   gridEndMinutes: number;
@@ -401,18 +307,44 @@ function DesktopAgendaGrid({
                         height: gridHeight,
                       }}
                     >
-                      {Array.from({ length: totalSlots }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "absolute left-0 right-0 border-t",
-                            i % 2 === 0
-                              ? "border-border/50"
-                              : "border-border/25",
-                          )}
-                          style={{ top: i * AGENDA_SLOT_HEIGHT_PX }}
-                        />
-                      ))}
+                      {Array.from({ length: totalSlots }).map((_, i) =>
+                        onSlotClick ? (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() =>
+                              onSlotClick(professional.id, timeLabels[i])
+                            }
+                            title={`Agendar às ${timeLabels[i]}`}
+                            aria-label={`Agendar ${professional.name} às ${timeLabels[i]}`}
+                            className={cn(
+                              "group absolute left-0 right-0 border-t transition-colors hover:bg-primary-light/40",
+                              i % 2 === 0
+                                ? "border-border/50"
+                                : "border-border/25",
+                            )}
+                            style={{
+                              top: i * AGENDA_SLOT_HEIGHT_PX,
+                              height: AGENDA_SLOT_HEIGHT_PX,
+                            }}
+                          >
+                            <span className="pointer-events-none absolute right-1 top-1 text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                              +
+                            </span>
+                          </button>
+                        ) : (
+                          <div
+                            key={i}
+                            className={cn(
+                              "absolute left-0 right-0 border-t",
+                              i % 2 === 0
+                                ? "border-border/50"
+                                : "border-border/25",
+                            )}
+                            style={{ top: i * AGENDA_SLOT_HEIGHT_PX }}
+                          />
+                        ),
+                      )}
 
                       {proAppointments.map((apt) => {
                         const startMin = minutesFromDateInTimezone(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -39,14 +39,21 @@ type AppointmentFormProps = {
   clients: Client[];
   professionals: Professional[];
   services: SerializableService[];
+  initialDate?: string;
+  initialProfessionalId?: string;
+  initialTime?: string;
 };
 
 export function AppointmentForm({
   clients,
   professionals,
   services,
+  initialDate,
+  initialProfessionalId,
+  initialTime,
 }: AppointmentFormProps) {
   const router = useRouter();
+  const prefillApplied = useRef(false);
   const [loading, setLoading] = useState(false);
   const [clientList, setClientList] = useState<ClientOption[]>(
     clients.map((c) => ({ id: c.id, name: c.name })),
@@ -66,9 +73,9 @@ export function AppointmentForm({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       clientId: "",
-      professionalId: "",
+      professionalId: initialProfessionalId ?? "",
       serviceId: "",
-      date: "",
+      date: initialDate ?? "",
       time: "",
       notes: "",
     },
@@ -114,6 +121,19 @@ export function AppointmentForm({
     }
     loadSlots();
   }, [serviceId, date, professionals, setValue, professionalId, time]);
+
+  // Criação rápida: quando o horário clicado na agenda estiver disponível
+  // para o profissional (após escolher o serviço), pré-seleciona-o uma vez.
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    if (!initialTime || !initialProfessionalId) return;
+    const slots = slotsByProfessional[initialProfessionalId];
+    if (slots?.includes(initialTime)) {
+      setValue("professionalId", initialProfessionalId, { shouldValidate: true });
+      setValue("time", initialTime, { shouldValidate: true });
+      prefillApplied.current = true;
+    }
+  }, [slotsByProfessional, initialTime, initialProfessionalId, setValue]);
 
   async function onSubmit(data: AppointmentFormData) {
     setLoading(true);

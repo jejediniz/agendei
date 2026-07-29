@@ -46,6 +46,25 @@ export function resolveAgendaGridHours(
   return { startHour: minHour, endHour: maxHour };
 }
 
+export function resolveHoursFromAppointments(
+  appointments: AppointmentWithRelations[],
+) {
+  let minHour = AGENDA_GRID_DEFAULT_START_HOUR;
+  let maxHour = AGENDA_GRID_DEFAULT_END_HOUR;
+
+  for (const apt of appointments) {
+    const startH = Math.floor(minutesFromDateInTimezone(new Date(apt.startAt)) / 60);
+    const endH = Math.ceil(minutesFromDateInTimezone(new Date(apt.endAt)) / 60);
+    minHour = Math.min(minHour, startH);
+    maxHour = Math.max(maxHour, endH);
+  }
+
+  minHour = Math.max(0, minHour - 1);
+  maxHour = Math.min(24, maxHour + 1);
+
+  return { startHour: minHour, endHour: maxHour };
+}
+
 export function getAgendaGridMetrics(startHour: number, endHour: number) {
   const gridStartMinutes = startHour * 60;
   const gridEndMinutes = endHour * 60;

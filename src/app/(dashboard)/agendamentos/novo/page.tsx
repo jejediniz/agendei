@@ -9,8 +9,17 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Users, Scissors, UserCog } from "lucide-react";
 
-export default async function NovoAgendamentoPage() {
+type PageProps = {
+  searchParams: Promise<{
+    data?: string;
+    profissional?: string;
+    hora?: string;
+  }>;
+};
+
+export default async function NovoAgendamentoPage({ searchParams }: PageProps) {
   const ctx = await requireSessionContext();
+  const params = await searchParams;
   const [clients, professionals, services] = await Promise.all([
     getClients(ctx.organizationId),
     getProfessionals(ctx.organizationId, true),
@@ -55,6 +64,9 @@ export default async function NovoAgendamentoPage() {
           clients={clients}
           professionals={professionals}
           services={services}
+          initialDate={params.data}
+          initialProfessionalId={params.profissional}
+          initialTime={params.hora}
         />
       )}
     </div>
