@@ -43,15 +43,31 @@ type PublicBookingWizardProps = {
   organization: PublicOrganization;
   services: SerializableService[];
   professionals: Professional[];
+  professionalServiceMap?: Record<string, string[]>;
   customerSession?: CustomerSession;
 };
 
 const STEPS = ["Serviço", "Data e horário", "Seus dados"];
 
+const EMPTY_SERVICE_MAP: Record<string, string[]> = {};
+
+// Profissional com vínculos só atende os serviços que realiza
+// (sem vínculos = atende todos, retrocompatível).
+function professionalOffersService(
+  map: Record<string, string[]>,
+  professionalId: string,
+  serviceId: string,
+): boolean {
+  const ids = map[professionalId];
+  if (!ids || ids.length === 0) return true;
+  return ids.includes(serviceId);
+}
+
 export function PublicBookingWizard({
   organization,
   services,
   professionals,
+  professionalServiceMap = EMPTY_SERVICE_MAP,
   customerSession = null,
 }: PublicBookingWizardProps) {
   const { data: session } = useSession();
@@ -104,6 +120,13 @@ export function PublicBookingWizard({
 
   const selectedService = services.find((s) => s.id === serviceId);
   const selectedProfessional = professionals.find((p) => p.id === professionalId);
+  const eligibleProfessionals = serviceId
+    ? professionals.filter(
+        (p) =>
+          p.active &&
+          professionalOffersService(professionalServiceMap, p.id, serviceId),
+      )
+    : professionals.filter((p) => p.active);
 
   useEffect(() => {
     async function loadSlots() {
@@ -114,7 +137,15 @@ export function PublicBookingWizard({
       setLoadingSlots(true);
       const results = await Promise.all(
         professionals
-          .filter((p) => p.active)
+          .filter(
+            (p) =>
+              p.active &&
+              professionalOffersService(
+                professionalServiceMap,
+                p.id,
+                serviceId,
+              ),
+          )
           .map(async (professional) => {
             const result = await getPublicAvailableSlots(
               organization.slug,
@@ -148,7 +179,16 @@ export function PublicBookingWizard({
       }
     }
     loadSlots();
-  }, [serviceId, date, organization.slug, professionals, setValue, professionalId, time]);
+  }, [
+    serviceId,
+    date,
+    organization.slug,
+    professionals,
+    professionalServiceMap,
+    setValue,
+    professionalId,
+    time,
+  ]);
 
   async function goNext() {
     if (step === 0) {
@@ -324,7 +364,7 @@ export function PublicBookingWizard({
                     </p>
                   ) : (
                     <ProfessionalSlotTimeGrid
-                      professionals={professionals}
+                      professionals={eligibleProfessionals}
                       slotsByProfessional={slotsByProfessional}
                       loading={loadingSlots}
                       selectedProfessionalId={professionalId}
@@ -359,15 +399,54 @@ export function PublicBookingWizard({
 
             {step === 2 && (
               <div className="space-y-4">
-                <div className="rounded-lg border border-border/60 bg-muted p-4 text-sm text-muted-foreground">
-                  <p>
-                    <strong className="text-foreground">{selectedService?.name}</strong>{" "}
-                    com {selectedProfessional?.name}
+                <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Revise seu agendamento
                   </p>
-                  <p className="mt-1">
-                    {date && time
-                      ? formatDateTime(combineDateAndTime(date, time))
-                      : "—"}
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <dt className="text-muted-foreground">Serviço</dt>
+                      <dd className="text-right font-medium text-foreground">
+                        {selectedService?.name ?? "—"}
+                      </dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-4">
+                      <dt className="text-muted-foreground">Profissional</dt>
+                      <dd className="text-right font-medium text-foreground">
+                        {selectedProfessional?.name ?? "—"}
+                      </dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-4">
+                      <dt className="text-muted-foreground">Data e horário</dt>
+                      <dd className="text-right font-medium text-foreground">
+                        {date && time
+                          ? formatDateTime(combineDateAndTime(date, time))
+                          : "—"}
+                      </dd>
+                    </div>
+                    {selectedService && (
+                      <>
+                        <div className="flex items-baseline justify-between gap-4">
+                          <dt className="text-muted-foreground">Duração</dt>
+                          <dd className="text-right font-medium text-foreground">
+                            {selectedService.durationMin} min
+                          </dd>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-4 border-t border-border/60 pt-2">
+                          <dt className="text-muted-foreground">Valor</dt>
+                          <dd className="text-right font-semibold text-primary">
+                            {formatCurrency(selectedService.price)}
+                          </dd>
+                        </div>
+                      </>
+                    )}
+                  </dl>
+                  <p className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                    Precisa cancelar? Você poderá fazer isso por aqui até o
+                    horário do atendimento
+                    {organization.phone
+                      ? `, ou fale com ${organization.name}: ${organization.phone}.`
+                      : "."}
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
