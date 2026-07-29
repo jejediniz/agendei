@@ -114,7 +114,7 @@ export function PlanPanel({ status, trialEndsAt, price }: PlanPanelProps) {
           )}
 
           {status === SubscriptionStatus.EXPIRED && (
-            <p className="text-sm text-rose-600">
+            <p className="text-sm text-rose-600 dark:text-rose-400">
               Seu trial expirou. Assine para continuar usando o sistema.
             </p>
           )}

@@ -91,7 +91,7 @@ export function ClientTable({ clients }: ClientTableProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 text-rose-600"
+                className="flex-1 text-rose-600 dark:text-rose-400"
                 onClick={() => setDeleteId(client.id)}
               >
                 <Trash2 className="mr-1.5 h-4 w-4" />
@@ -143,7 +143,7 @@ export function ClientTable({ clients }: ClientTableProps) {
                       size="icon"
                       onClick={() => setDeleteId(client.id)}
                     >
-                      <Trash2 className="h-4 w-4 text-rose-600" />
+                      <Trash2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                     </Button>
                   </div>
                 </DataTableCell>

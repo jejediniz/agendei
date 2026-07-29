@@ -27,7 +27,7 @@ export default async function PlatformPage() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-border bg-white">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted text-left">

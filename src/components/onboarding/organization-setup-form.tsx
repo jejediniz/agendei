@@ -83,7 +83,7 @@ export function OrganizationSetupForm() {
               onChange={(e) => handleBusinessNameChange(e.target.value)}
             />
             {errors.businessName && (
-              <p className="text-sm text-rose-600">{errors.businessName.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.businessName.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -93,7 +93,7 @@ export function OrganizationSetupForm() {
               <Input id="slug" {...register("slug")} />
             </div>
             {errors.slug && (
-              <p className="text-sm text-rose-600">{errors.slug.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.slug.message}</p>
             )}
           </div>
           <div className="space-y-2">

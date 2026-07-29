@@ -78,7 +78,7 @@ export function ProfessionalForm({
               <Label htmlFor="name">Nome *</Label>
               <Input id="name" {...register("name")} />
               {errors.name && (
-                <p className="text-sm text-rose-600">{errors.name.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.name.message}</p>
               )}
             </div>
             <div className="space-y-2">

@@ -339,7 +339,7 @@ export function PublicBookingWizard({
                   )}
                 />
                 {errors.serviceId && (
-                  <p className="text-sm text-rose-600">{errors.serviceId.message}</p>
+                  <p className="text-sm text-rose-600 dark:text-rose-400">{errors.serviceId.message}</p>
                 )}
               </div>
             )}
@@ -376,15 +376,15 @@ export function PublicBookingWizard({
                     />
                   )}
                   {errors.date && (
-                    <p className="text-sm text-rose-600">{errors.date.message}</p>
+                    <p className="text-sm text-rose-600 dark:text-rose-400">{errors.date.message}</p>
                   )}
                   {errors.professionalId && (
-                    <p className="text-sm text-rose-600">
+                    <p className="text-sm text-rose-600 dark:text-rose-400">
                       {errors.professionalId.message}
                     </p>
                   )}
                   {errors.time && (
-                    <p className="text-sm text-rose-600">{errors.time.message}</p>
+                    <p className="text-sm text-rose-600 dark:text-rose-400">{errors.time.message}</p>
                   )}
                 </div>
 
@@ -454,7 +454,7 @@ export function PublicBookingWizard({
                     <Label htmlFor="clientName">Seu nome *</Label>
                     <Input id="clientName" {...register("clientName")} />
                     {errors.clientName && (
-                      <p className="text-sm text-rose-600">
+                      <p className="text-sm text-rose-600 dark:text-rose-400">
                         {errors.clientName.message}
                       </p>
                     )}
@@ -468,7 +468,7 @@ export function PublicBookingWizard({
                       {...register("clientPhone")}
                     />
                     {errors.clientPhone && (
-                      <p className="text-sm text-rose-600" role="alert">
+                      <p className="text-sm text-rose-600 dark:text-rose-400" role="alert">
                         {errors.clientPhone.message}
                       </p>
                     )}
@@ -486,7 +486,7 @@ export function PublicBookingWizard({
                         Usaremos este e-mail para você acompanhar seus agendamentos.
                       </p>
                       {errors.clientEmail && (
-                        <p className="text-sm text-rose-600" role="alert">
+                        <p className="text-sm text-rose-600 dark:text-rose-400" role="alert">
                           {errors.clientEmail.message}
                         </p>
                       )}

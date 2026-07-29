@@ -334,7 +334,7 @@ export function LoginForm({
                   {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-sm text-rose-600">{errors.email.message}</p>
+                  <p className="text-sm text-rose-600 dark:text-rose-400">{errors.email.message}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -346,7 +346,7 @@ export function LoginForm({
                   {...register("password")}
                 />
                 {errors.password && (
-                  <p className="text-sm text-rose-600">
+                  <p className="text-sm text-rose-600 dark:text-rose-400">
                     {errors.password.message}
                   </p>
                 )}
@@ -399,7 +399,7 @@ export function LoginForm({
                   {...registerCustomer("email")}
                 />
                 {customerErrors.email && (
-                  <p className="text-sm text-rose-600">
+                  <p className="text-sm text-rose-600 dark:text-rose-400">
                     {customerErrors.email.message}
                   </p>
                 )}
@@ -413,7 +413,7 @@ export function LoginForm({
                   {...registerCustomer("password")}
                 />
                 {customerErrors.password && (
-                  <p className="text-sm text-rose-600">
+                  <p className="text-sm text-rose-600 dark:text-rose-400">
                     {customerErrors.password.message}
                   </p>
                 )}

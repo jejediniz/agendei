@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "@/components/providers/session-provider";
 import "./globals.css";
 
@@ -36,12 +37,15 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full px-safe pb-safe">
-        <SessionProvider>
-          {children}
-          <Toaster position="top-right" richColors closeButton offset={16} />
-        </SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <SessionProvider>
+            {children}
+            <Toaster position="top-right" richColors closeButton offset={16} />
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

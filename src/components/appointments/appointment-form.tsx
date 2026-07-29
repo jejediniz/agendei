@@ -233,7 +233,7 @@ export function AppointmentForm({
                 )}
               />
               {errors.clientId && (
-                <p className="text-sm text-rose-600">{errors.clientId.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.clientId.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -264,7 +264,7 @@ export function AppointmentForm({
                 )}
               />
               {errors.serviceId && (
-                <p className="text-sm text-rose-600">{errors.serviceId.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.serviceId.message}</p>
               )}
               {selectedService && (
                 <p className="text-xs text-muted-foreground">
@@ -309,15 +309,15 @@ export function AppointmentForm({
                   />
                 )}
                 {errors.date && (
-                  <p className="text-sm text-rose-600">{errors.date.message}</p>
+                  <p className="text-sm text-rose-600 dark:text-rose-400">{errors.date.message}</p>
                 )}
                 {errors.professionalId && (
-                  <p className="text-sm text-rose-600">
+                  <p className="text-sm text-rose-600 dark:text-rose-400">
                     {errors.professionalId.message}
                   </p>
                 )}
                 {errors.time && (
-                  <p className="text-sm text-rose-600">{errors.time.message}</p>
+                  <p className="text-sm text-rose-600 dark:text-rose-400">{errors.time.message}</p>
                 )}
               </div>
             )}
