@@ -113,19 +113,9 @@ export default auth((req) => {
     return NextResponse.redirect(new URL(PLAN_ROUTE, req.nextUrl));
   }
 
-  const needsOnboarding = !user.onboardingCompleted;
-  if (
-    needsOnboarding &&
-    pathname !== ONBOARDING_ROUTE &&
-    !pathname.startsWith("/api/") &&
-    !pathname.startsWith(SETTINGS_PREFIX)
-  ) {
-    return NextResponse.redirect(new URL(ONBOARDING_ROUTE, req.nextUrl));
-  }
-
-  if (!needsOnboarding && pathname === ONBOARDING_ROUTE) {
-    return NextResponse.redirect(new URL("/", req.nextUrl));
-  }
+  // Onboarding concluído/ incompleto é validado no servidor (DB) em
+  // /onboarding e no layout do dashboard — não no JWT do Edge,
+  // para evitar loop e Prisma no middleware.
 
   return NextResponse.next();
 });

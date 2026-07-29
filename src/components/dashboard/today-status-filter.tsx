@@ -10,8 +10,10 @@ const FILTER_OPTIONS: { value: TodayStatusFilterValue; label: string }[] = [
   { value: "all", label: "Todos" },
   { value: "SCHEDULED", label: APPOINTMENT_STATUS_LABELS.SCHEDULED },
   { value: "CONFIRMED", label: APPOINTMENT_STATUS_LABELS.CONFIRMED },
+  { value: "IN_PROGRESS", label: APPOINTMENT_STATUS_LABELS.IN_PROGRESS },
   { value: "COMPLETED", label: APPOINTMENT_STATUS_LABELS.COMPLETED },
   { value: "CANCELLED", label: APPOINTMENT_STATUS_LABELS.CANCELLED },
+  { value: "NO_SHOW", label: APPOINTMENT_STATUS_LABELS.NO_SHOW },
 ];
 
 type TodayStatusFilterProps = {

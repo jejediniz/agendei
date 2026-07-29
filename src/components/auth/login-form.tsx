@@ -68,9 +68,19 @@ export function LoginForm({
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
-  const [area, setArea] = useState<LoginArea>(
-    searchParams.get("area") === "cliente" ? "cliente" : "negocio",
-  );
+  const loginError = searchParams.get("error");
+  // Deriva a aba inicial já considerando o erro de login (ex.: conta de
+  // empresa tentando entrar como cliente força a aba "cliente"). Assim
+  // evitamos setState dentro do effect — o effect fica só com o toast.
+  const initialArea: LoginArea =
+    loginError === "ContaEmpresa"
+      ? "cliente"
+      : loginError === "ContaPlataforma"
+        ? "negocio"
+        : searchParams.get("area") === "cliente"
+          ? "cliente"
+          : "negocio";
+  const [area, setArea] = useState<LoginArea>(initialArea);
   const customerCallbackUrl =
     searchParams.get("callbackUrl") ?? "/login?area=cliente";
   const isCustomerLoggedIn =
@@ -81,21 +91,18 @@ export function LoginForm({
     session?.user?.accountType === AccountType.BUSINESS;
 
   useEffect(() => {
-    const error = searchParams.get("error");
-    if (error === "ContaEmpresa") {
-      setArea("cliente");
+    if (loginError === "ContaEmpresa") {
       toast.error(BUSINESS_ON_CUSTOMER_ERROR);
       return;
     }
-    if (error === "ContaPlataforma") {
-      setArea("negocio");
+    if (loginError === "ContaPlataforma") {
       toast.error("Esta conta é de administrador da plataforma.");
       return;
     }
-    if (error) {
+    if (loginError) {
       toast.error("Não foi possível entrar com Google. Tente novamente.");
     }
-  }, [searchParams]);
+  }, [loginError]);
 
   useEffect(() => {
     if (!isBusinessLoggedIn || !session?.user.organizationId) return;

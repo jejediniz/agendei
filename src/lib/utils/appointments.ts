@@ -1,7 +1,16 @@
 import type { Appointment, AppointmentStatus } from "@prisma/client";
-import { addMinutesToDate, parseTimeToMinutes, minutesToTime } from "./date";
+import {
+  addMinutesToDate,
+  minutesFromDateInTimezone,
+  parseTimeToMinutes,
+  minutesToTime,
+} from "./date";
 
-export const BLOCKING_STATUSES: AppointmentStatus[] = ["SCHEDULED", "CONFIRMED"];
+export const BLOCKING_STATUSES: AppointmentStatus[] = [
+  "SCHEDULED",
+  "CONFIRMED",
+  "IN_PROGRESS",
+];
 
 export function hasOverlap(
   startA: Date,
@@ -54,29 +63,22 @@ export function generateAvailableSlots(
       current += slotIntervalMin
     ) {
       const slotStart = minutesToTime(current);
-      const slotEnd = minutesToTime(current + durationMin);
-
-      const slotStartDate = new Date(`1970-01-01T${slotStart}:00`);
-      const slotEndDate = new Date(`1970-01-01T${slotEnd}:00`);
+      const slotStartMin = current;
+      const slotEndMin = current + durationMin;
 
       const blocked = appointments.some((apt) => {
         if (!BLOCKING_STATUSES.includes(apt.status)) return false;
-        const aptStart = apt.startAt;
-        const aptEnd = apt.endAt;
-        const aptStartMin =
-          aptStart.getHours() * 60 + aptStart.getMinutes();
-        const aptEndMin = aptEnd.getHours() * 60 + aptEnd.getMinutes();
-        const slotStartMin = parseTimeToMinutes(slotStart);
-        const slotEndMin = parseTimeToMinutes(slotEnd);
+        // Compara os minutos do dia no fuso do negócio (America/Sao_Paulo).
+        // Usar getHours() direto leria o fuso do servidor e quebraria o
+        // cálculo de bloqueio em produção fora do BRT.
+        const aptStartMin = minutesFromDateInTimezone(apt.startAt);
+        const aptEndMin = minutesFromDateInTimezone(apt.endAt);
         return slotStartMin < aptEndMin && slotEndMin > aptStartMin;
       });
 
       if (!blocked) {
         slots.push(slotStart);
       }
-
-      void slotStartDate;
-      void slotEndDate;
     }
   }
 

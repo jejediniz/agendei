@@ -37,8 +37,10 @@ type PendingAction = {
   status: AppointmentStatus;
 };
 
+type ConfirmableStatus = "CANCELLED" | "COMPLETED" | "NO_SHOW";
+
 const CONFIRM_MESSAGES: Record<
-  "CANCELLED" | "COMPLETED",
+  ConfirmableStatus,
   {
     title: string;
     description: string;
@@ -58,6 +60,13 @@ const CONFIRM_MESSAGES: Record<
     description: "Marcar este agendamento como concluído?",
     confirmLabel: "Concluir",
     variant: "default",
+  },
+  NO_SHOW: {
+    title: "Marcar como não compareceu",
+    description:
+      "Registrar que o cliente não compareceu? O horário ficará disponível novamente.",
+    confirmLabel: "Não compareceu",
+    variant: "destructive",
   },
 };
 
@@ -121,6 +130,14 @@ function StatusActions({
         <Button
           size="sm"
           disabled={loading}
+          onClick={() => onStatus("IN_PROGRESS")}
+        >
+          Iniciar atendimento
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={loading}
           onClick={() => onStatus("COMPLETED")}
         >
           Concluir
@@ -129,9 +146,39 @@ function StatusActions({
           size="sm"
           variant="outline"
           disabled={loading}
+          onClick={() => onStatus("NO_SHOW")}
+        >
+          Não compareceu
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={loading}
           onClick={() => onStatus("CANCELLED")}
         >
           Cancelar
+        </Button>
+      </div>
+    );
+  }
+
+  if (appointment.status === "IN_PROGRESS") {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          disabled={loading}
+          onClick={() => onStatus("COMPLETED")}
+        >
+          Concluir
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={loading}
+          onClick={() => onStatus("NO_SHOW")}
+        >
+          Não compareceu
         </Button>
       </div>
     );
@@ -197,7 +244,9 @@ export function AppointmentDetailDialog({
 
   function handleStatus(status: AppointmentStatus) {
     if (!appointment) return;
-    if (status === "CONFIRMED") {
+    // Transições sem risco aplicam direto; as que liberam o horário ou
+    // encerram o atendimento pedem confirmação.
+    if (status === "CONFIRMED" || status === "IN_PROGRESS") {
       void applyStatus(status);
       return;
     }
@@ -205,7 +254,9 @@ export function AppointmentDetailDialog({
   }
 
   const dialogConfig =
-    pending?.status === "CANCELLED" || pending?.status === "COMPLETED"
+    pending?.status === "CANCELLED" ||
+    pending?.status === "COMPLETED" ||
+    pending?.status === "NO_SHOW"
       ? CONFIRM_MESSAGES[pending.status]
       : null;
 

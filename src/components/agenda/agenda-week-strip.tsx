@@ -91,7 +91,7 @@ export function AgendaWeekStrip({
                   "flex min-w-[44px] flex-1 flex-col items-center gap-1.5 rounded-xl py-1 transition-colors",
                   isDisabled && "cursor-not-allowed opacity-30",
                 )}
-                aria-selected={isSelected}
+                aria-pressed={isSelected}
                 aria-current={isSelected ? "date" : undefined}
               >
                 <span

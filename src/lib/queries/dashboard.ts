@@ -13,8 +13,10 @@ export type TodayDashboardStats = {
   total: number;
   scheduled: number;
   confirmed: number;
+  inProgress: number;
   completed: number;
   cancelled: number;
+  noShow: number;
   projectedRevenue: number;
 };
 
@@ -45,8 +47,10 @@ export function computeTodayDashboardStats(
     total: appointments.length,
     scheduled: 0,
     confirmed: 0,
+    inProgress: 0,
     completed: 0,
     cancelled: 0,
+    noShow: 0,
     projectedRevenue: 0,
   };
 
@@ -60,12 +64,19 @@ export function computeTodayDashboardStats(
         stats.confirmed++;
         stats.projectedRevenue += apt.service.price;
         break;
+      case AppointmentStatus.IN_PROGRESS:
+        stats.inProgress++;
+        stats.projectedRevenue += apt.service.price;
+        break;
       case AppointmentStatus.COMPLETED:
         stats.completed++;
         stats.projectedRevenue += apt.service.price;
         break;
       case AppointmentStatus.CANCELLED:
         stats.cancelled++;
+        break;
+      case AppointmentStatus.NO_SHOW:
+        stats.noShow++;
         break;
     }
   }
@@ -82,6 +93,7 @@ export function getNextTodayAppointment(
       (apt) =>
         apt.status !== AppointmentStatus.COMPLETED &&
         apt.status !== AppointmentStatus.CANCELLED &&
+        apt.status !== AppointmentStatus.NO_SHOW &&
         new Date(apt.startAt) >= now,
     ) ?? null
   );

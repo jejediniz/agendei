@@ -10,6 +10,9 @@ export const professionalSchema = z.object({
     .or(z.literal("")),
   specialty: z.string().optional(),
   active: z.boolean(),
+  // Serviços que o profissional realiza. Vazio/ausente = atende todos
+  // (retrocompatível).
+  serviceIds: z.array(z.string()).optional(),
 });
 
 export type ProfessionalFormData = z.infer<typeof professionalSchema>;

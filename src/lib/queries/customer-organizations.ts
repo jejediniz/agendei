@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { orgWhere } from "@/lib/tenant/prisma-scopes";
 
 export async function getCustomerOrganizations(userId: string) {
   const clients = await prisma.client.findMany({

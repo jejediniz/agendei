@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Users, UserCog, Scissors } from "lucide-react";
+import { CalendarDays, BarChart3 } from "lucide-react";
 import { requireSessionContext } from "@/lib/tenant/context";
 import { getDashboardData } from "@/lib/queries/dashboard";
-import { StatCard } from "@/components/dashboard/stat-card";
 import { DashboardDayView } from "@/components/dashboard/dashboard-day-view";
 import { SubscriptionBanner } from "@/components/billing/subscription-banner";
 
@@ -20,35 +19,39 @@ export default async function DashboardPage() {
         nextTodayAppointment={data.nextTodayAppointment}
       />
 
-      <section className="border-t border-border/60 pt-8">
-        <h2 className="mb-4 font-display text-base font-semibold text-muted-foreground">
-          Resumo do negócio
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard
-            compact
-            title="Clientes"
-            value={data.clientsCount}
-            icon={Users}
-          />
-          <StatCard
-            compact
-            title="Profissionais ativos"
-            value={data.professionalsCount}
-            icon={UserCog}
-          />
-          <StatCard
-            compact
-            title="Serviços ativos"
-            value={data.servicesCount}
-            icon={Scissors}
-          />
-        </div>
-        <p className="mt-3 text-xs text-muted-foreground">
-          <Link href="/agendamentos" className="text-primary hover:underline">
-            Ver todos os agendamentos →
-          </Link>
-        </p>
+      <section className="flex flex-col gap-3 border-t border-border/60 pt-6 sm:flex-row">
+        <Link
+          href="/agenda"
+          className="flex flex-1 items-center gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-warm transition-colors hover:border-primary/30 hover:bg-primary-light/40"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light ring-1 ring-primary/10">
+            <CalendarDays className="h-5 w-5 text-primary" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">
+              Abrir a agenda
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Calendário e lista de agendamentos
+            </span>
+          </span>
+        </Link>
+        <Link
+          href="/relatorios"
+          className="flex flex-1 items-center gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-warm transition-colors hover:border-primary/30 hover:bg-primary-light/40"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light ring-1 ring-primary/10">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">
+              Ver relatórios
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Faturamento e serviços mais procurados
+            </span>
+          </span>
+        </Link>
       </section>
     </div>
   );

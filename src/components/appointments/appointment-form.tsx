@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -35,18 +35,41 @@ import { Plus } from "lucide-react";
 
 type ClientOption = Pick<Client, "id" | "name">;
 
+const EMPTY_SERVICE_MAP: Record<string, string[]> = {};
+
+// Profissional com vínculos só atende os serviços que realiza
+// (sem vínculos = atende todos, retrocompatível).
+function professionalOffersService(
+  map: Record<string, string[]>,
+  professionalId: string,
+  serviceId: string,
+): boolean {
+  const ids = map[professionalId];
+  if (!ids || ids.length === 0) return true;
+  return ids.includes(serviceId);
+}
+
 type AppointmentFormProps = {
   clients: Client[];
   professionals: Professional[];
   services: SerializableService[];
+  professionalServiceMap?: Record<string, string[]>;
+  initialDate?: string;
+  initialProfessionalId?: string;
+  initialTime?: string;
 };
 
 export function AppointmentForm({
   clients,
   professionals,
   services,
+  professionalServiceMap = EMPTY_SERVICE_MAP,
+  initialDate,
+  initialProfessionalId,
+  initialTime,
 }: AppointmentFormProps) {
   const router = useRouter();
+  const prefillApplied = useRef(false);
   const [loading, setLoading] = useState(false);
   const [clientList, setClientList] = useState<ClientOption[]>(
     clients.map((c) => ({ id: c.id, name: c.name })),
@@ -66,9 +89,9 @@ export function AppointmentForm({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       clientId: "",
-      professionalId: "",
+      professionalId: initialProfessionalId ?? "",
       serviceId: "",
-      date: "",
+      date: initialDate ?? "",
       time: "",
       notes: "",
     },
@@ -79,6 +102,13 @@ export function AppointmentForm({
   const date = watch("date");
   const time = watch("time");
   const selectedService = services.find((s) => s.id === serviceId);
+  const eligibleProfessionals = serviceId
+    ? professionals.filter(
+        (p) =>
+          p.active &&
+          professionalOffersService(professionalServiceMap, p.id, serviceId),
+      )
+    : professionals.filter((p) => p.active);
 
   useEffect(() => {
     async function loadSlots() {
@@ -89,7 +119,15 @@ export function AppointmentForm({
       setLoadingSlots(true);
       const results = await Promise.all(
         professionals
-          .filter((p) => p.active)
+          .filter(
+            (p) =>
+              p.active &&
+              professionalOffersService(
+                professionalServiceMap,
+                p.id,
+                serviceId,
+              ),
+          )
           .map(async (professional) => {
             const result = await getAvailableSlots(
               professional.id,
@@ -113,7 +151,28 @@ export function AppointmentForm({
       }
     }
     loadSlots();
-  }, [serviceId, date, professionals, setValue, professionalId, time]);
+  }, [
+    serviceId,
+    date,
+    professionals,
+    professionalServiceMap,
+    setValue,
+    professionalId,
+    time,
+  ]);
+
+  // Criação rápida: quando o horário clicado na agenda estiver disponível
+  // para o profissional (após escolher o serviço), pré-seleciona-o uma vez.
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    if (!initialTime || !initialProfessionalId) return;
+    const slots = slotsByProfessional[initialProfessionalId];
+    if (slots?.includes(initialTime)) {
+      setValue("professionalId", initialProfessionalId, { shouldValidate: true });
+      setValue("time", initialTime, { shouldValidate: true });
+      prefillApplied.current = true;
+    }
+  }, [slotsByProfessional, initialTime, initialProfessionalId, setValue]);
 
   async function onSubmit(data: AppointmentFormData) {
     setLoading(true);
@@ -238,7 +297,7 @@ export function AppointmentForm({
                   </p>
                 ) : (
                   <ProfessionalSlotTimeGrid
-                    professionals={professionals}
+                    professionals={eligibleProfessionals}
                     slotsByProfessional={slotsByProfessional}
                     loading={loadingSlots}
                     selectedProfessionalId={professionalId}

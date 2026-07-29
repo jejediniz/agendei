@@ -9,8 +9,8 @@ import {
   UserCog,
   Scissors,
   Clock,
-  Calendar,
   CalendarDays,
+  BarChart3,
   Settings,
   CreditCard,
   Plus,
@@ -19,27 +19,63 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
 
-const mainNavItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  // Rotas adicionais que devem manter este item destacado (ex.: a lista de
+  // agendamentos é uma aba do hub Agenda).
+  matchPaths?: string[];
+};
+
+type NavGroup = {
+  label?: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    items: [{ href: "/", label: "Visão geral", icon: LayoutDashboard }],
+  },
+  {
+    label: "Operação",
+    items: [
+      {
+        href: "/agenda",
+        label: "Agenda",
+        icon: CalendarDays,
+        matchPaths: ["/agendamentos"],
+      },
+    ],
+  },
+  {
+    label: "Cadastros",
+    items: [
+      { href: "/clientes", label: "Clientes", icon: Users },
+      { href: "/servicos", label: "Serviços", icon: Scissors },
+      { href: "/profissionais", label: "Profissionais", icon: UserCog },
+    ],
+  },
+  {
+    label: "Análise",
+    items: [{ href: "/relatorios", label: "Relatórios", icon: BarChart3 }],
+  },
+  {
+    label: "Configurações",
+    items: [
+      { href: "/configuracoes/negocio", label: "Negócio", icon: Settings },
+      { href: "/horarios", label: "Horários", icon: Clock },
+      { href: "/configuracoes/plano", label: "Plano", icon: CreditCard },
+    ],
+  },
 ];
 
-const gestaoNavItems = [
-  { href: "/clientes", label: "Clientes", icon: Users },
-  { href: "/profissionais", label: "Profissionais", icon: UserCog },
-  { href: "/servicos", label: "Serviços", icon: Scissors },
-  { href: "/horarios", label: "Horários", icon: Clock },
-  { href: "/agendamentos", label: "Agendamentos", icon: Calendar },
-  { href: "/agenda", label: "Agenda do dia", icon: CalendarDays },
-];
-
-const settingsItems = [
-  { href: "/configuracoes/negocio", label: "Negócio", icon: Settings },
-  { href: "/configuracoes/plano", label: "Plano", icon: CreditCard },
-];
-
-function isNavActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isNavActive(pathname: string, item: NavItem) {
+  const paths = [item.href, ...(item.matchPaths ?? [])];
+  return paths.some((href) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  });
 }
 
 type AppSidebarProps = {
@@ -52,11 +88,11 @@ function NavLink({
   pathname,
   onNavigate,
 }: {
-  item: { href: string; label: string; icon: typeof LayoutDashboard };
+  item: NavItem;
   pathname: string;
   onNavigate?: () => void;
 }) {
-  const isActive = isNavActive(pathname, item.href);
+  const isActive = isNavActive(pathname, item);
   const Icon = item.icon;
 
   return (
@@ -130,48 +166,25 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-5 overflow-y-auto p-3">
-        <div className="space-y-0.5">
-          {mainNavItems.map((item) => (
-            <NavLink
-              key={item.href}
-              item={item}
-              pathname={pathname}
-              onNavigate={onMobileClose}
-            />
-          ))}
-        </div>
-
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
-            Gestão
-          </p>
-          <div className="space-y-0.5">
-            {gestaoNavItems.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                pathname={pathname}
-                onNavigate={onMobileClose}
-              />
-            ))}
+        {navGroups.map((group, index) => (
+          <div key={group.label ?? `group-${index}`}>
+            {group.label && (
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  pathname={pathname}
+                  onNavigate={onMobileClose}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
-            Configurações
-          </p>
-          <div className="space-y-0.5">
-            {settingsItems.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                pathname={pathname}
-                onNavigate={onMobileClose}
-              />
-            ))}
-          </div>
-        </div>
+        ))}
       </nav>
     </>
   );

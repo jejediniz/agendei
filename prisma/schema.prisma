@@ -10,8 +10,10 @@ datasource db {
 enum AppointmentStatus {
   SCHEDULED
   CONFIRMED
+  IN_PROGRESS
   COMPLETED
   CANCELLED
+  NO_SHOW
 }
 
 enum DayOfWeek {
@@ -131,38 +133,52 @@ model Client {
 }
 
 model Professional {
-  id             String         @id @default(cuid())
+  id             String                @id @default(cuid())
   organizationId String
   name           String
   phone          String?
   email          String?
   specialty      String?
-  active         Boolean        @default(true)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  active         Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   availabilities Availability[]
   appointments   Appointment[]
+  services       ProfessionalService[]
 
   @@index([organizationId])
   @@index([organizationId, active])
 }
 
 model Service {
-  id             String        @id @default(cuid())
+  id             String                @id @default(cuid())
   organizationId String
   name           String
   description    String?
   durationMin    Int
-  price          Decimal       @db.Decimal(10, 2)
-  active         Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  price          Decimal               @db.Decimal(10, 2)
+  active         Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   appointments   Appointment[]
+  professionals  ProfessionalService[]
 
   @@index([organizationId])
   @@index([organizationId, active])
+}
+
+model ProfessionalService {
+  id             String       @id @default(cuid())
+  professionalId String
+  serviceId      String
+  createdAt      DateTime     @default(now())
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, serviceId])
+  @@index([serviceId])
 }
 
 model Availability {

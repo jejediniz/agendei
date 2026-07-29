@@ -52,10 +52,21 @@ export async function createAppointment(
 }
 
 const VALID_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
-  SCHEDULED: [AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED],
-  CONFIRMED: [AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED],
+  SCHEDULED: [
+    AppointmentStatus.CONFIRMED,
+    AppointmentStatus.CANCELLED,
+    AppointmentStatus.NO_SHOW,
+  ],
+  CONFIRMED: [
+    AppointmentStatus.IN_PROGRESS,
+    AppointmentStatus.COMPLETED,
+    AppointmentStatus.CANCELLED,
+    AppointmentStatus.NO_SHOW,
+  ],
+  IN_PROGRESS: [AppointmentStatus.COMPLETED, AppointmentStatus.NO_SHOW],
   COMPLETED: [],
   CANCELLED: [],
+  NO_SHOW: [],
 };
 
 export async function updateAppointmentStatus(

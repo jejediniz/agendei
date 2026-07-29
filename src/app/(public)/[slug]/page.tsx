@@ -6,7 +6,10 @@ import {
 } from "@/lib/queries/public-booking";
 import { getCustomerSession } from "@/lib/tenant/customer-context";
 import { getServices } from "@/lib/queries/services";
-import { getProfessionals } from "@/lib/queries/professionals";
+import {
+  getProfessionals,
+  getProfessionalServiceMap,
+} from "@/lib/queries/professionals";
 import { PublicBookingWizard } from "@/components/booking/public-booking-wizard";
 import { BookingUnavailable } from "@/components/booking/booking-unavailable";
 import { PublicBookingLayout } from "@/components/booking/public-booking-layout";
@@ -35,11 +38,13 @@ export default async function PublicBookingPage({ params }: PageProps) {
     );
   }
 
-  const [services, professionals, customerSession] = await Promise.all([
-    getServices(organization.id, true),
-    getProfessionals(organization.id, true),
-    getCustomerSession(),
-  ]);
+  const [services, professionals, professionalServiceMap, customerSession] =
+    await Promise.all([
+      getServices(organization.id, true),
+      getProfessionals(organization.id, true),
+      getProfessionalServiceMap(organization.id),
+      getCustomerSession(),
+    ]);
 
   if (services.length === 0 || professionals.length === 0) {
     return (
@@ -63,6 +68,7 @@ export default async function PublicBookingPage({ params }: PageProps) {
         organization={organization}
         services={services}
         professionals={professionals}
+        professionalServiceMap={professionalServiceMap}
         customerSession={customerSession}
       />
     </PublicBookingLayout>
