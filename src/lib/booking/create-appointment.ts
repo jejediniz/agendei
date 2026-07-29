@@ -5,6 +5,8 @@ import {
   BLOCKING_STATUSES,
   MAX_BUFFER_MIN,
   calculateEndAt,
+  findBufferedConflict,
+  isWithinAvailability,
   runWithOverlapGuard,
 } from "@/lib/utils/appointments";
 import {
@@ -84,18 +86,11 @@ export async function createAppointmentForOrganization(
   });
 
   const startMinutes = parseTimeToMinutes(data.time);
-  const endTimeStr = `${Math.floor((startMinutes + service.durationMin) / 60)
-    .toString()
-    .padStart(2, "0")}:${((startMinutes + service.durationMin) % 60)
-    .toString()
-    .padStart(2, "0")}`;
-
-  const withinAvailability = availabilities.some((av) => {
-    return (
-      startMinutes >= parseTimeToMinutes(av.startTime) &&
-      parseTimeToMinutes(endTimeStr) <= parseTimeToMinutes(av.endTime)
-    );
-  });
+  const withinAvailability = isWithinAvailability(
+    availabilities,
+    startMinutes,
+    service.durationMin,
+  );
 
   if (!withinAvailability) {
     return {
@@ -121,12 +116,7 @@ export async function createAppointmentForOrganization(
         include: { service: { select: { bufferMin: true } } },
       });
 
-      const conflicting = candidates.some((apt) => {
-        const bufferedEnd = calculateEndAt(apt.endAt, apt.service.bufferMin);
-        return startAt < bufferedEnd && endAt > apt.startAt;
-      });
-
-      if (conflicting) {
+      if (findBufferedConflict(candidates, startAt, endAt)) {
         throw new Error("SLOT_TAKEN");
       }
 

@@ -158,6 +158,37 @@ export function calculateEndAt(startAt: Date, durationMin: number): Date {
   return addMinutesToDate(startAt, durationMin);
 }
 
+export function isWithinAvailability(
+  availabilities: AvailabilitySlot[],
+  startMinutes: number,
+  durationMin: number,
+): boolean {
+  const endMinutes = startMinutes + durationMin;
+  return availabilities.some(
+    (av) =>
+      startMinutes >= parseTimeToMinutes(av.startTime) &&
+      endMinutes <= parseTimeToMinutes(av.endTime),
+  );
+}
+
+type BufferedCandidate = {
+  startAt: Date;
+  endAt: Date;
+  service: { bufferMin: number };
+};
+
+/** Mesma lógica de conflito com buffer usada na criação e na remarcação. */
+export function findBufferedConflict(
+  candidates: BufferedCandidate[],
+  startAt: Date,
+  endAt: Date,
+): boolean {
+  return candidates.some((apt) => {
+    const bufferedEnd = calculateEndAt(apt.endAt, apt.service.bufferMin);
+    return startAt < bufferedEnd && endAt > apt.startAt;
+  });
+}
+
 export function availabilityRangesOverlap(
   startA: string,
   endA: string,
