@@ -1,124 +1,58 @@
 import Link from "next/link";
-import {
-  Users,
-  UserCog,
-  Scissors,
-  Calendar,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { CalendarDays, BarChart3 } from "lucide-react";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getDashboardData } from "@/lib/queries/dashboard";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { StatusBadge } from "@/components/appointments/status-badge";
-import { formatDateTime } from "@/lib/utils/date";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { DashboardDayView } from "@/components/dashboard/dashboard-day-view";
+import { SubscriptionBanner } from "@/components/billing/subscription-banner";
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const ctx = await requireSessionContext();
+  const data = await getDashboardData(ctx.organizationId);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Visão geral do seu estabelecimento
-        </p>
-      </div>
+      <SubscriptionBanner />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Clientes" value={data.clientsCount} icon={Users} />
-        <StatCard
-          title="Profissionais ativos"
-          value={data.professionalsCount}
-          icon={UserCog}
-        />
-        <StatCard
-          title="Serviços ativos"
-          value={data.servicesCount}
-          icon={Scissors}
-        />
-        <StatCard
-          title="Agendamentos hoje"
-          value={data.stats.todayCount}
-          icon={Calendar}
-        />
-      </div>
+      <DashboardDayView
+        todayAppointments={data.todayAppointments}
+        todayStats={data.todayStats}
+        nextTodayAppointment={data.nextTodayAppointment}
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <StatCard
-          title="Confirmados"
-          value={data.stats.confirmedCount}
-          icon={CheckCircle}
-          description="Total de agendamentos confirmados"
-        />
-        <StatCard
-          title="Cancelados"
-          value={data.stats.cancelledCount}
-          icon={XCircle}
-          description="Total de agendamentos cancelados"
-        />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Agendamentos de hoje</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/agenda">Ver agenda</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.todayAppointments.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum agendamento hoje.</p>
-            ) : (
-              data.todayAppointments.map((apt) => (
-                <div
-                  key={apt.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900">{apt.client.name}</p>
-                    <p className="text-sm text-slate-500">
-                      {formatDateTime(apt.startAt)} · {apt.professional.name}
-                    </p>
-                  </div>
-                  <StatusBadge status={apt.status} />
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Próximos atendimentos</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/agendamentos">Ver todos</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.upcomingAppointments.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum atendimento próximo.</p>
-            ) : (
-              data.upcomingAppointments.map((apt) => (
-                <div
-                  key={apt.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900">{apt.client.name}</p>
-                    <p className="text-sm text-slate-500">
-                      {formatDateTime(apt.startAt)} · {apt.service.name}
-                    </p>
-                  </div>
-                  <StatusBadge status={apt.status} />
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <section className="flex flex-col gap-3 border-t border-border/60 pt-6 sm:flex-row">
+        <Link
+          href="/agenda"
+          className="flex flex-1 items-center gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-warm transition-colors hover:border-primary/30 hover:bg-primary-light/40"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light ring-1 ring-primary/10">
+            <CalendarDays className="h-5 w-5 text-primary" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">
+              Abrir a agenda
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Calendário e lista de agendamentos
+            </span>
+          </span>
+        </Link>
+        <Link
+          href="/relatorios"
+          className="flex flex-1 items-center gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-warm transition-colors hover:border-primary/30 hover:bg-primary-light/40"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light ring-1 ring-primary/10">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">
+              Ver relatórios
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Faturamento e serviços mais procurados
+            </span>
+          </span>
+        </Link>
+      </section>
     </div>
   );
 }

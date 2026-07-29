@@ -33,14 +33,14 @@ export function AppointmentFilters({ professionals }: AppointmentFiltersProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
       <div className="space-y-2">
         <Label>Data</Label>
         <Input
           type="date"
           defaultValue={searchParams.get("data") ?? ""}
           onChange={(e) => updateFilter("data", e.target.value)}
-          className="w-40"
+          className="w-full"
         />
       </div>
       <div className="space-y-2">
@@ -49,7 +49,7 @@ export function AppointmentFilters({ professionals }: AppointmentFiltersProps) {
           defaultValue={searchParams.get("profissional") ?? "all"}
           onValueChange={(v) => updateFilter("profissional", v)}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -62,13 +62,13 @@ export function AppointmentFilters({ professionals }: AppointmentFiltersProps) {
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 sm:col-span-2 lg:col-span-1">
         <Label>Status</Label>
         <Select
           defaultValue={searchParams.get("status") ?? "all"}
           onValueChange={(v) => updateFilter("status", v)}
         >
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

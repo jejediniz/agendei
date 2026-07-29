@@ -1,19 +1,150 @@
 @import "tailwindcss";
 
+/*
+ * Design system Agendei — identidade "SaaS profissional, calma".
+ * Base neutra fria + primária teal-petróleo (marca/ações) + esmeralda
+ * (semântica de sucesso/confirmação). Os nomes dos tokens são estáveis:
+ * trocar apenas os valores aqui re-veste toda a aplicação.
+ * Tema escuro (Fase 10): `.dark` espelha cada token de `:root`; o toggle
+ * (next-themes) aplica a classe `.dark` na tag <html>.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Neutros */
+  --background: #f4f5f6;
+  --foreground: #1a1e23;
+  --card: #ffffff;
+  --card-foreground: #1a1e23;
+  --muted: #eef0f2;
+  --muted-foreground: #596068;
+  --border: #e2e5e9;
+  --surface: #fafbfb;
+
+  /* Primária — teal petróleo (marca e ações) */
+  --primary: #0e6e64;
+  --primary-hover: #0b5a52;
+  --primary-dark: #084139;
+  --primary-light: #d9edea;
+  --primary-foreground: #ffffff;
+  --ring: #0e6e64;
+
+  /* Acento — esmeralda (sucesso / confirmado) */
+  --accent: #2f8f6b;
+  --accent-light: #dcefe6;
+
+  /* Sombras neutras discretas */
+  --shadow-warm: 0 1px 2px rgba(20, 25, 30, 0.04), 0 2px 8px rgba(20, 25, 30, 0.04);
+  --shadow-warm-md: 0 2px 12px rgba(20, 25, 30, 0.06);
+  --shadow-warm-lg: 0 4px 20px rgba(20, 25, 30, 0.08);
+}
+
+.dark {
+  /* Neutros */
+  --background: #14181d;
+  --foreground: #e9ecef;
+  --card: #1b2026;
+  --card-foreground: #e9ecef;
+  --muted: #242a31;
+  --muted-foreground: #9aa3ad;
+  --border: #2c333b;
+  --surface: #191e24;
+
+  /* Primária — teal petróleo, aclarada para contraste sobre fundo escuro */
+  --primary: #22b8a6;
+  --primary-hover: #3fcab9;
+  --primary-dark: #b6ece3;
+  --primary-light: #103330;
+  --primary-foreground: #06201c;
+  --ring: #22b8a6;
+
+  /* Acento — esmeralda */
+  --accent: #3fbd8f;
+  --accent-light: #10331f;
+
+  /* Sombras — mais opacas para haver profundidade sobre fundo já escuro */
+  --shadow-warm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow-warm-md: 0 2px 12px rgba(0, 0, 0, 0.32);
+  --shadow-warm-lg: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+.shadow-warm {
+  box-shadow: var(--shadow-warm);
+}
+
+.shadow-warm-lg {
+  box-shadow: var(--shadow-warm-lg);
+}
+
+.shadow-warm-md {
+  box-shadow: var(--shadow-warm-md);
+}
+
+.pattern-dots {
+  background-image: radial-gradient(
+    circle,
+    rgba(14, 110, 100, 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+/* Safe area (notch / home indicator) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.px-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.pb-safe-fab {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.fab-safe {
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1rem + env(safe-area-inset-right, 0px));
+}
+
+/* Touch-friendly minimum tap target */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
 }

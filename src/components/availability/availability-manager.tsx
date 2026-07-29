@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/layout/empty-state";
 
@@ -48,6 +49,8 @@ export function AvailabilityManager({
 }: AvailabilityManagerProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [filterId, setFilterId] = useState(selectedProfessionalId ?? "all");
 
   const {
@@ -98,8 +101,13 @@ export function AvailabilityManager({
     router.refresh();
   }
 
-  async function handleDelete(id: string) {
-    const result = await deleteAvailability(id);
+  async function handleDelete() {
+    if (!deleteId) return;
+    setDeleteLoading(true);
+    const result = await deleteAvailability(deleteId);
+    setDeleteLoading(false);
+    setDeleteId(null);
+
     if (!result.success) {
       toast.error(result.error);
       return;
@@ -152,7 +160,7 @@ export function AvailabilityManager({
                 )}
               />
               {errors.professionalId && (
-                <p className="text-sm text-rose-600">{errors.professionalId.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.professionalId.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -184,7 +192,7 @@ export function AvailabilityManager({
               <Label htmlFor="endTime">Fim *</Label>
               <Input id="endTime" type="time" {...register("endTime")} />
               {errors.endTime && (
-                <p className="text-sm text-rose-600">{errors.endTime.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.endTime.message}</p>
               )}
             </div>
             <div className="flex items-end sm:col-span-2 lg:col-span-5">
@@ -196,7 +204,7 @@ export function AvailabilityManager({
         </CardContent>
       </Card>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <Label>Filtrar por profissional:</Label>
         <Select
           value={filterId}
@@ -207,7 +215,7 @@ export function AvailabilityManager({
             router.replace(`/horarios?${params.toString()}`);
           }}
         >
-          <SelectTrigger className="w-64">
+          <SelectTrigger className="w-full sm:w-64">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -225,7 +233,7 @@ export function AvailabilityManager({
         <EmptyState
           icon={Clock}
           title="Nenhum horário cadastrado"
-          description="Defina os dias e horários de atendimento de cada profissional."
+          description="Defina os dias e horários de atendimento de cada profissional para liberar agendamentos."
         />
       ) : (
         Object.entries(grouped).map(([name, items]) => (
@@ -237,13 +245,13 @@ export function AvailabilityManager({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3"
+                  className="flex flex-col gap-3 rounded-lg border border-border/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-slate-900">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="font-medium text-foreground">
                       {DAY_OF_WEEK_LABELS[item.dayOfWeek]}
                     </span>
-                    <span className="text-slate-600">
+                    <span className="text-muted-foreground">
                       {item.startTime} — {item.endTime}
                     </span>
                     <Badge variant={item.active ? "success" : "secondary"}>
@@ -261,9 +269,9 @@ export function AvailabilityManager({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => setDeleteId(item.id)}
                     >
-                      <Trash2 className="h-4 w-4 text-rose-600" />
+                      <Trash2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                     </Button>
                   </div>
                 </div>
@@ -272,6 +280,17 @@ export function AvailabilityManager({
           </Card>
         ))
       )}
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Excluir horário"
+        description="Excluir este horário? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="destructive"
+        loading={deleteLoading}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

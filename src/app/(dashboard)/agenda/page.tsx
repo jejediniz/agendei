@@ -1,40 +1,70 @@
 import { Suspense } from "react";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { getAppointments } from "@/lib/queries/appointments";
+import { format } from "date-fns";
+import { requireSessionContext } from "@/lib/tenant/context";
+import {
+  getAppointments,
+  getAppointmentsInRange,
+  type AppointmentWithRelations,
+} from "@/lib/queries/appointments";
 import { getProfessionals } from "@/lib/queries/professionals";
+import { getAvailabilitiesByProfessional } from "@/lib/queries/availability";
+import { getWeekRange, getMonthGridRange } from "@/lib/utils/date";
+import { parseAgendaView } from "@/lib/constants/agenda";
 import { PageHeader } from "@/components/layout/page-header";
-import { AgendaFilters } from "@/components/agenda/agenda-filters";
-import { DayTimeline } from "@/components/agenda/day-timeline";
+import { AgendaView } from "@/components/agenda/agenda-view";
+import { AgendaSectionTabs } from "@/components/agenda/agenda-section-tabs";
 
 type PageProps = {
-  searchParams: Promise<{ data?: string; profissional?: string }>;
+  searchParams: Promise<{
+    data?: string;
+    vista?: string;
+    profissional?: string;
+  }>;
 };
 
 export default async function AgendaPage({ searchParams }: PageProps) {
+  const ctx = await requireSessionContext();
   const params = await searchParams;
   const date = params.data ?? format(new Date(), "yyyy-MM-dd");
-  const dateLabel = format(parseISO(date), "EEEE, dd 'de' MMMM 'de' yyyy", {
-    locale: ptBR,
-  });
+  const view = parseAgendaView(params.vista);
 
-  const [appointments, professionals] = await Promise.all([
-    getAppointments({ date, professionalId: params.profissional }),
-    getProfessionals(),
+  const [professionals, availabilities] = await Promise.all([
+    getProfessionals(ctx.organizationId),
+    getAvailabilitiesByProfessional(ctx.organizationId),
   ]);
 
-  const filtered = appointments.filter((a) => a.status !== "CANCELLED");
+  let appointments: AppointmentWithRelations[];
+  if (view === "dia") {
+    const all = await getAppointments(ctx.organizationId, { date });
+    appointments = all.filter((a) => a.status !== "CANCELLED");
+  } else {
+    const { start, end } =
+      view === "semana" ? getWeekRange(date) : getMonthGridRange(date);
+    appointments = await getAppointmentsInRange(
+      ctx.organizationId,
+      start,
+      end,
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
-        title="Agenda do dia"
-        description="Visualização dos agendamentos em formato de agenda"
+        title="Agenda"
+        description="Calendário de atendimentos — dia, semana ou mês"
+        actionLabel="Novo agendamento"
+        actionHref="/agendamentos/novo"
       />
+      <AgendaSectionTabs />
       <Suspense>
-        <AgendaFilters professionals={professionals} />
+        <AgendaView
+          professionals={professionals}
+          appointments={appointments}
+          availabilities={availabilities}
+          date={date}
+          view={view}
+        />
       </Suspense>
-      <DayTimeline appointments={filtered} dateLabel={dateLabel} />
     </div>
   );
 }

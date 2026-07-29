@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { AppointmentStatus } from "@prisma/client";
+import { requireSessionContext } from "@/lib/tenant/context";
 import { getAppointments } from "@/lib/queries/appointments";
 import { getProfessionals } from "@/lib/queries/professionals";
 import { PageHeader } from "@/components/layout/page-header";
+import { AgendaSectionTabs } from "@/components/agenda/agenda-section-tabs";
 import { AppointmentFilters } from "@/components/appointments/appointment-filters";
 import { AppointmentTable } from "@/components/appointments/appointment-table";
 
@@ -15,24 +17,26 @@ type PageProps = {
 };
 
 export default async function AgendamentosPage({ searchParams }: PageProps) {
+  const ctx = await requireSessionContext();
   const params = await searchParams;
   const [appointments, professionals] = await Promise.all([
-    getAppointments({
+    getAppointments(ctx.organizationId, {
       date: params.data,
       professionalId: params.profissional,
       status: params.status as AppointmentStatus | undefined,
     }),
-    getProfessionals(),
+    getProfessionals(ctx.organizationId),
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
-        title="Agendamentos"
-        description="Visualize e gerencie os agendamentos"
+        title="Agenda"
+        description="Lista completa — visualize, confirme e acompanhe todos os agendamentos"
         actionLabel="Novo agendamento"
         actionHref="/agendamentos/novo"
       />
+      <AgendaSectionTabs />
       <Suspense>
         <AppointmentFilters professionals={professionals} />
       </Suspense>

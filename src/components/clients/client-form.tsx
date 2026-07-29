@@ -64,21 +64,21 @@ export function ClientForm({ defaultValues, clientId }: ClientFormProps) {
               <Label htmlFor="name">Nome *</Label>
               <Input id="name" {...register("name")} />
               {errors.name && (
-                <p className="text-sm text-rose-600">{errors.name.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.name.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone *</Label>
               <Input id="phone" placeholder="(11) 99999-9999" {...register("phone")} />
               {errors.phone && (
-                <p className="text-sm text-rose-600">{errors.phone.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.phone.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input id="email" type="email" {...register("email")} />
               {errors.email && (
-                <p className="text-sm text-rose-600">{errors.email.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
