@@ -1,7 +1,11 @@
 import { AppointmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { orgWhere } from "@/lib/tenant/prisma-scopes";
-import { BLOCKING_STATUSES, calculateEndAt } from "@/lib/utils/appointments";
+import {
+  BLOCKING_STATUSES,
+  calculateEndAt,
+  runWithOverlapGuard,
+} from "@/lib/utils/appointments";
 import {
   combineDateAndTime,
   getDayOfWeek,
@@ -98,8 +102,8 @@ export async function createAppointmentForOrganization(
     };
   }
 
-  try {
-    const appointment = await prisma.$transaction(async (tx) => {
+  const result = await runWithOverlapGuard(() =>
+    prisma.$transaction(async (tx) => {
       const conflicting = await tx.appointment.findFirst({
         where: {
           organizationId,
@@ -126,16 +130,14 @@ export async function createAppointmentForOrganization(
           status: AppointmentStatus.SCHEDULED,
         },
       });
-    });
+    }),
+  );
 
-    return { success: true, id: appointment.id };
-  } catch (error) {
-    if (error instanceof Error && error.message === "SLOT_TAKEN") {
-      return {
-        success: false,
-        error: "Este horário já está ocupado para o profissional selecionado.",
-      };
-    }
-    throw error;
+  if (!result.success) {
+    return {
+      success: false,
+      error: "Este horário já está ocupado para o profissional selecionado.",
+    };
   }
+  return { success: true, id: result.value.id };
 }

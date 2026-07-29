@@ -12,6 +12,65 @@ export const BLOCKING_STATUSES: AppointmentStatus[] = [
   "IN_PROGRESS",
 ];
 
+const OVERLAP_CONSTRAINT_NAME = "appointment_no_overlap";
+
+/**
+ * Rede de segurança final: a checagem de conflito em nível de app pode falhar
+ * sob concorrência (duas requisições passam pelo findFirst antes de qualquer
+ * create/update comitar). A exclusion constraint do Postgres (ver
+ * prisma/sql/appointment-no-overlap.sql) barra isso no banco. Esse erro chega
+ * como PrismaClientUnknownRequestError (sem `code`/`meta` estruturado, ao
+ * contrário de violação de unique constraint), por isso a detecção é pelo
+ * nome da constraint na mensagem.
+ */
+export function isOverlapConstraintViolation(error: unknown): boolean {
+  return (
+    error instanceof Error && error.message.includes(OVERLAP_CONSTRAINT_NAME)
+  );
+}
+
+/**
+ * Inserções verdadeiramente simultâneas na mesma constraint GiST podem
+ * terminar em deadlock (40P01) em vez de violação de exclusão — é um
+ * comportamento documentado do Postgres, não um bug. Com 3+ tentativas
+ * concorrentes pelo mesmo horário, as sobreviventes de um deadlock podem
+ * colidir de novo entre si; por isso repetimos algumas vezes com um
+ * pequeno atraso aleatório (jitter) para desincronizá-las, em vez de uma
+ * única retentativa imediata.
+ */
+export function isDeadlockError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("deadlock detected");
+}
+
+const MAX_OVERLAP_GUARD_ATTEMPTS = 8;
+
+export async function runWithOverlapGuard<T>(
+  run: () => Promise<T>,
+): Promise<{ success: true; value: T } | { success: false }> {
+  for (let attempt = 0; attempt < MAX_OVERLAP_GUARD_ATTEMPTS; attempt++) {
+    try {
+      return { success: true, value: await run() };
+    } catch (error) {
+      const isLastAttempt = attempt === MAX_OVERLAP_GUARD_ATTEMPTS - 1;
+      if (isDeadlockError(error) && !isLastAttempt) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.random() * 250),
+        );
+        continue;
+      }
+      if (
+        isOverlapConstraintViolation(error) ||
+        isDeadlockError(error) ||
+        (error instanceof Error && error.message === "SLOT_TAKEN")
+      ) {
+        return { success: false };
+      }
+      throw error;
+    }
+  }
+  return { success: false };
+}
+
 export function hasOverlap(
   startA: Date,
   endA: Date,

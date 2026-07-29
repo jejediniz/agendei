@@ -249,15 +249,15 @@ Cada fase termina com: `lint` + typecheck (`tsc --noEmit`) + `build` verdes, rev
 | 2026-07-28 | 4 | **Vínculo Profissional↔Serviço** (tabela `ProfessionalService`, db push aditivo). Regra retrocompatível: profissional **sem** vínculos atende todos; **com** vínculos, só os selecionados. Cálculo de slots e criação de agendamento validam o vínculo; formulário de profissional ganha seleção de serviços; formulário de agendamento filtra profissionais pelo serviço; seed com vínculos. Build/lint/typecheck verdes. | feat |
 | 2026-07-28 | 5 | Fluxo público respeita o vínculo profissional↔serviço (só mostra quem realiza o serviço); passo final vira **revisão** com serviço, profissional, data/hora, duração, valor e política de cancelamento/contato. Cancelamento pelo cliente já existia. Build/lint/typecheck verdes. | feat |
 | 2026-07-28 | 6 | **Testes** com Vitest (14 casos) cobrindo regras de disponibilidade/conflito (`generateAvailableSlots`, `hasOverlap`, `appointmentsOverlap`) e utilidades de data/fuso (semana/mês/navegação); scripts `test`/`test:watch`. Corrigidos avisos de lint (imports não usados, `aria-pressed` no seletor de dia). Lint 0 erros / 4 avisos (padrões do React Hook Form). Build/typecheck/testes verdes. | test |
+| 2026-07-29 | 7 | **Concorrência de reserva**: exclusion constraint Postgres (`btree_gist`, `EXCLUDE USING gist` sobre `professionalId` + `tsrange(startAt,endAt)`, filtrada pelos status bloqueantes) como rede de segurança final contra dupla reserva, complementando (não substituindo) a checagem em nível de app. SQL idempotente em `prisma/sql/appointment-no-overlap.sql`, encadeado no script `db:push`. `create-appointment.ts` e `updateAppointmentStatus` tratam a violação da constraint e o deadlock (40P01, comportamento documentado do Postgres sob inserção concorrente em índice GiST) com retentativas + jitter (`runWithOverlapGuard`), convertendo em mensagem de "horário ocupado" para o usuário. Validado com testes de estresse manuais (60/60 corridas de 2 tentativas simultâneas resultaram em exatamente 1 sucesso, 0 dupla-reserva). Build/lint/typecheck/testes verdes. | fix |
 
 ### Ainda em aberto (não bloqueiam)
 
-- **Tema escuro:** exige varredura das cores utilitárias fixas; adiado.
-- **Concorrência de reserva:** proposta de exclusion constraint Postgres aguardando aprovação (transação atual já cobre carga típica).
-- **Buffer entre atendimentos:** não aprovado nesta rodada.
-- **Remarcação self-service:** hoje o cliente cancela e reagenda; remarcação em 1 passo fica como evolução.
+- **Tema escuro:** exige varredura das cores utilitárias fixas; planejado para a Fase 10.
+- ~~**Concorrência de reserva**~~ — concluído na Fase 7.
+- **Buffer entre atendimentos + granularidade de slot:** planejado para a Fase 8.
+- **Remarcação self-service:** planejado para a Fase 9 (hoje o cliente cancela e reagenda do zero).
 
 ### Pendências de aprovação (não executadas)
 
-- **Concorrência de reserva (P0 nº7):** proposta de *exclusion constraint* Postgres com `btree_gist` sobre `(professionalId, tstzrange(startAt, endAt))` filtrando `status IN (SCHEDULED, CONFIRMED)`. Requer `CREATE EXTENSION btree_gist` e `prisma db push`. Impacto: **aditivo, não destrutivo**, mas mexe no schema — aguardando aprovação. Alternativa sem schema: advisory lock transacional por `(professionalId, slot)`.
 - **Trabalho de onboarding em andamento** (6 arquivos + `post-onboarding-redirect.tsx`): preservado no working tree, **não commitado** (código de auth em iteração pela Jessica).
