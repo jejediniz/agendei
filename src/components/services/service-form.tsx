@@ -39,6 +39,7 @@ export function ServiceForm({
       name: "",
       description: "",
       durationMin: 30,
+      bufferMin: 0,
       price: 0,
       active: true,
     },
@@ -82,6 +83,13 @@ export function ServiceForm({
               <Input id="durationMin" type="number" min={5} {...register("durationMin", { valueAsNumber: true })} />
               {errors.durationMin && (
                 <p className="text-sm text-rose-600">{errors.durationMin.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bufferMin">Intervalo após o atendimento (min)</Label>
+              <Input id="bufferMin" type="number" min={0} max={180} {...register("bufferMin", { valueAsNumber: true })} />
+              {errors.bufferMin && (
+                <p className="text-sm text-rose-600">{errors.bufferMin.message}</p>
               )}
             </div>
             <div className="space-y-2">

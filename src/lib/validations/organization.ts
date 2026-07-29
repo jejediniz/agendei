@@ -26,12 +26,19 @@ export const createOrganizationSchema = z.object({
 
 export type CreateOrganizationData = z.infer<typeof createOrganizationSchema>;
 
+export const SLOT_INTERVAL_OPTIONS = [15, 30, 60] as const;
+
 export const updateOrganizationSchema = z.object({
   name: z.string().min(2, "Nome do negócio obrigatório"),
   businessType: z.nativeEnum(BusinessType),
   phone: z.string().optional(),
   email: z.string().email("E-mail inválido").optional().or(z.literal("")),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  slotIntervalMin: z.union([
+    z.literal(15),
+    z.literal(30),
+    z.literal(60),
+  ]),
 });
 
 export type UpdateOrganizationData = z.infer<typeof updateOrganizationSchema>;

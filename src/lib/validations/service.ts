@@ -7,6 +7,10 @@ export const serviceSchema = z.object({
     .number()
     .min(5, "Duração mínima de 5 minutos")
     .max(480, "Duração máxima de 8 horas"),
+  bufferMin: z
+    .number()
+    .min(0, "Intervalo não pode ser negativo")
+    .max(180, "Intervalo máximo de 3 horas"),
   price: z.number().min(0, "Preço não pode ser negativo"),
   active: z.boolean(),
 });

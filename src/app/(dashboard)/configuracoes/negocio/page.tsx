@@ -38,6 +38,7 @@ export default async function ConfiguracoesNegocioPage() {
           phone: org.phone ?? "",
           email: org.email ?? "",
           logoUrl: org.logoUrl ?? "",
+          slotIntervalMin: org.slotIntervalMin as 15 | 30 | 60,
         }}
       />
     </div>

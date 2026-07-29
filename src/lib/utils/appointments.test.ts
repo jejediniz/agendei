@@ -80,6 +80,30 @@ describe("generateAvailableSlots", () => {
     );
     expect(slots).toEqual(["09:00"]);
   });
+
+  it("respeita o buffer após um agendamento existente", () => {
+    const busy = [
+      {
+        startAt: at("10:00"),
+        endAt: at("10:30"),
+        status: "CONFIRMED" as AppointmentStatus,
+        bufferMin: 30,
+      },
+    ];
+    // Sem buffer, 10:30 estaria livre; com 30min de buffer, só libera às 11:00.
+    const slots = generateAvailableSlots(availability, busy, 30, 30);
+    expect(slots).toEqual(["09:00", "09:30", "11:00", "11:30"]);
+  });
+
+  it("usa granularidade de slot customizada", () => {
+    const slots = generateAvailableSlots(
+      [{ startTime: "09:00", endTime: "10:00" }],
+      [],
+      30,
+      15,
+    );
+    expect(slots).toEqual(["09:00", "09:15", "09:30"]);
+  });
 });
 
 describe("calculateEndAt", () => {

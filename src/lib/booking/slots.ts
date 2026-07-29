@@ -26,6 +26,11 @@ export async function fetchAvailableSlots(
     return { slots: [], error: "Serviço não encontrado." };
   }
 
+  const organization = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { slotIntervalMin: true },
+  });
+
   const professional = await prisma.professional.findFirst({
     where: { id: professionalId, active: true, ...orgWhere(organizationId) },
   });
@@ -65,12 +70,21 @@ export async function fetchAvailableSlots(
       startAt: { gte: dayStart, lte: dayEnd },
       status: { in: BLOCKING_STATUSES },
     },
+    include: { service: { select: { bufferMin: true } } },
   });
+
+  const blockingAppointments = appointments.map((apt) => ({
+    startAt: apt.startAt,
+    endAt: apt.endAt,
+    status: apt.status,
+    bufferMin: apt.service.bufferMin,
+  }));
 
   const slots = generateAvailableSlots(
     availabilities,
-    appointments,
+    blockingAppointments,
     service.durationMin,
+    organization?.slotIntervalMin,
   ).filter((slot) => {
     const startAt = combineDateAndTime(date, slot);
     const endAt = calculateEndAt(startAt, service.durationMin);

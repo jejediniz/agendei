@@ -12,6 +12,10 @@ export const BLOCKING_STATUSES: AppointmentStatus[] = [
   "IN_PROGRESS",
 ];
 
+// Mesmo teto validado em `serviceSchema.bufferMin` — usado para limitar a
+// janela de busca de conflitos ao considerar o buffer de outros agendamentos.
+export const MAX_BUFFER_MIN = 180;
+
 const OVERLAP_CONSTRAINT_NAME = "appointment_no_overlap";
 
 /**
@@ -102,6 +106,7 @@ type BlockingAppointment = {
   startAt: Date;
   endAt: Date;
   status: AppointmentStatus;
+  bufferMin?: number;
 };
 
 export function generateAvailableSlots(
@@ -131,7 +136,10 @@ export function generateAvailableSlots(
         // Usar getHours() direto leria o fuso do servidor e quebraria o
         // cálculo de bloqueio em produção fora do BRT.
         const aptStartMin = minutesFromDateInTimezone(apt.startAt);
-        const aptEndMin = minutesFromDateInTimezone(apt.endAt);
+        // O buffer é o intervalo mínimo que o profissional precisa depois
+        // desse atendimento — estende o fim bloqueado, não o início.
+        const aptEndMin =
+          minutesFromDateInTimezone(apt.endAt) + (apt.bufferMin ?? 0);
         return slotStartMin < aptEndMin && slotEndMin > aptStartMin;
       });
 

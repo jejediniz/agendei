@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { orgWhere } from "@/lib/tenant/prisma-scopes";
 import {
   BLOCKING_STATUSES,
+  MAX_BUFFER_MIN,
   calculateEndAt,
   runWithOverlapGuard,
 } from "@/lib/utils/appointments";
 import {
+  addMinutesToDate,
   combineDateAndTime,
   getDayOfWeek,
   parseTimeToMinutes,
@@ -104,14 +106,24 @@ export async function createAppointmentForOrganization(
 
   const result = await runWithOverlapGuard(() =>
     prisma.$transaction(async (tx) => {
-      const conflicting = await tx.appointment.findFirst({
+      // Janela alargada pelo teto de buffer (MAX_BUFFER_MIN) porque o
+      // agendamento anterior pode reservar minutos extras depois do seu
+      // próprio horário — sem isso, um `endAt` cru "livre" esconderia um
+      // conflito real gerado pelo buffer do serviço anterior.
+      const candidates = await tx.appointment.findMany({
         where: {
           organizationId,
           professionalId: data.professionalId,
           status: { in: BLOCKING_STATUSES },
           startAt: { lt: endAt },
-          endAt: { gt: startAt },
+          endAt: { gt: addMinutesToDate(startAt, -MAX_BUFFER_MIN) },
         },
+        include: { service: { select: { bufferMin: true } } },
+      });
+
+      const conflicting = candidates.some((apt) => {
+        const bufferedEnd = calculateEndAt(apt.endAt, apt.service.bufferMin);
+        return startAt < bufferedEnd && endAt > apt.startAt;
       });
 
       if (conflicting) {

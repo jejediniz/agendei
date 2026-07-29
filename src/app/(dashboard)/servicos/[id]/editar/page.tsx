@@ -27,6 +27,7 @@ export default async function EditarServicoPage({ params }: PageProps) {
           name: service.name,
           description: service.description ?? "",
           durationMin: service.durationMin,
+          bufferMin: service.bufferMin,
           price: service.price,
           active: service.active,
         }}

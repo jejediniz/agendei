@@ -110,6 +110,7 @@ export async function updateOrganization(
       phone: parsed.data.phone || null,
       email: parsed.data.email || null,
       logoUrl: parsed.data.logoUrl || null,
+      slotIntervalMin: parsed.data.slotIntervalMin,
     },
   });
 
