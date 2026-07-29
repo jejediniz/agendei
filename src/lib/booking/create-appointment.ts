@@ -1,8 +1,16 @@
 import { AppointmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { orgWhere } from "@/lib/tenant/prisma-scopes";
-import { BLOCKING_STATUSES, calculateEndAt } from "@/lib/utils/appointments";
 import {
+  BLOCKING_STATUSES,
+  MAX_BUFFER_MIN,
+  calculateEndAt,
+  findBufferedConflict,
+  isWithinAvailability,
+  runWithOverlapGuard,
+} from "@/lib/utils/appointments";
+import {
+  addMinutesToDate,
   combineDateAndTime,
   getDayOfWeek,
   parseTimeToMinutes,
@@ -78,18 +86,11 @@ export async function createAppointmentForOrganization(
   });
 
   const startMinutes = parseTimeToMinutes(data.time);
-  const endTimeStr = `${Math.floor((startMinutes + service.durationMin) / 60)
-    .toString()
-    .padStart(2, "0")}:${((startMinutes + service.durationMin) % 60)
-    .toString()
-    .padStart(2, "0")}`;
-
-  const withinAvailability = availabilities.some((av) => {
-    return (
-      startMinutes >= parseTimeToMinutes(av.startTime) &&
-      parseTimeToMinutes(endTimeStr) <= parseTimeToMinutes(av.endTime)
-    );
-  });
+  const withinAvailability = isWithinAvailability(
+    availabilities,
+    startMinutes,
+    service.durationMin,
+  );
 
   if (!withinAvailability) {
     return {
@@ -98,19 +99,24 @@ export async function createAppointmentForOrganization(
     };
   }
 
-  try {
-    const appointment = await prisma.$transaction(async (tx) => {
-      const conflicting = await tx.appointment.findFirst({
+  const result = await runWithOverlapGuard(() =>
+    prisma.$transaction(async (tx) => {
+      // Janela alargada pelo teto de buffer (MAX_BUFFER_MIN) porque o
+      // agendamento anterior pode reservar minutos extras depois do seu
+      // próprio horário — sem isso, um `endAt` cru "livre" esconderia um
+      // conflito real gerado pelo buffer do serviço anterior.
+      const candidates = await tx.appointment.findMany({
         where: {
           organizationId,
           professionalId: data.professionalId,
           status: { in: BLOCKING_STATUSES },
           startAt: { lt: endAt },
-          endAt: { gt: startAt },
+          endAt: { gt: addMinutesToDate(startAt, -MAX_BUFFER_MIN) },
         },
+        include: { service: { select: { bufferMin: true } } },
       });
 
-      if (conflicting) {
+      if (findBufferedConflict(candidates, startAt, endAt)) {
         throw new Error("SLOT_TAKEN");
       }
 
@@ -126,16 +132,14 @@ export async function createAppointmentForOrganization(
           status: AppointmentStatus.SCHEDULED,
         },
       });
-    });
+    }),
+  );
 
-    return { success: true, id: appointment.id };
-  } catch (error) {
-    if (error instanceof Error && error.message === "SLOT_TAKEN") {
-      return {
-        success: false,
-        error: "Este horário já está ocupado para o profissional selecionado.",
-      };
-    }
-    throw error;
+  if (!result.success) {
+    return {
+      success: false,
+      error: "Este horário já está ocupado para o profissional selecionado.",
+    };
   }
+  return { success: true, id: result.value.id };
 }

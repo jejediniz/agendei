@@ -20,3 +20,13 @@ export const publicSlotsSchema = z.object({
   serviceId: z.string().min(1),
   date: z.string().min(1),
 });
+
+export const rescheduleAppointmentSchema = z.object({
+  appointmentId: z.string().min(1),
+  date: z.string().min(1, "Selecione uma data"),
+  time: z.string().min(1, "Selecione um horário"),
+});
+
+export type RescheduleAppointmentFormData = z.infer<
+  typeof rescheduleAppointmentSchema
+>;

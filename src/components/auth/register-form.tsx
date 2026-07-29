@@ -122,21 +122,21 @@ export function RegisterForm() {
             <Label htmlFor="name">Seu nome *</Label>
             <Input id="name" {...register("name")} />
             {errors.name && (
-              <p className="text-sm text-rose-600">{errors.name.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.name.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">E-mail *</Label>
             <Input id="email" type="email" {...register("email")} />
             {errors.email && (
-              <p className="text-sm text-rose-600">{errors.email.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.email.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Senha *</Label>
             <Input id="password" type="password" {...register("password")} />
             {errors.password && (
-              <p className="text-sm text-rose-600">{errors.password.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.password.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -147,7 +147,7 @@ export function RegisterForm() {
               onChange={(e) => handleBusinessNameChange(e.target.value)}
             />
             {errors.businessName && (
-              <p className="text-sm text-rose-600">{errors.businessName.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.businessName.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -157,7 +157,7 @@ export function RegisterForm() {
               <Input id="slug" {...register("slug")} />
             </div>
             {errors.slug && (
-              <p className="text-sm text-rose-600">{errors.slug.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.slug.message}</p>
             )}
           </div>
           <div className="space-y-2">

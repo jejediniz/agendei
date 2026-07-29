@@ -16,7 +16,7 @@ export function SubscriptionBanner() {
     const days = getTrialDaysRemaining(new Date(user.trialEndsAt));
     if (days <= 7) {
       return (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-200">
           <Clock className="h-5 w-5 shrink-0" />
           <p>
             Seu trial termina em <strong>{days} dia(s)</strong>.{" "}
@@ -32,7 +32,7 @@ export function SubscriptionBanner() {
 
   if (user.subscriptionStatus === SubscriptionStatus.PAST_DUE) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+      <div className="flex items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800/50 dark:bg-rose-900/30 dark:text-rose-200">
         <AlertTriangle className="h-5 w-5 shrink-0" />
         <p>
           Pagamento em atraso.{" "}

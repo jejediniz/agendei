@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Calendar } from "lucide-react";
+import { RescheduleAppointmentDialog } from "@/components/booking/reschedule-appointment-dialog";
 
 type CustomerAppointmentsListProps = {
   slug: string;
@@ -24,6 +25,8 @@ export function CustomerAppointmentsList({
   const router = useRouter();
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rescheduling, setRescheduling] =
+    useState<AppointmentWithRelations | null>(null);
 
   const now = new Date();
   const upcoming = appointments.filter(
@@ -80,6 +83,7 @@ export function CustomerAppointmentsList({
                 key={apt.id}
                 appointment={apt}
                 onCancel={() => setCancelId(apt.id)}
+                onReschedule={() => setRescheduling(apt)}
               />
             ))}
           </section>
@@ -105,6 +109,13 @@ export function CustomerAppointmentsList({
         loading={loading}
         onConfirm={handleCancel}
       />
+
+      <RescheduleAppointmentDialog
+        slug={slug}
+        appointment={rescheduling}
+        onOpenChange={(open) => !open && setRescheduling(null)}
+        onRescheduled={() => router.refresh()}
+      />
     </>
   );
 }
@@ -112,14 +123,17 @@ export function CustomerAppointmentsList({
 function AppointmentCard({
   appointment,
   onCancel,
+  onReschedule,
 }: {
   appointment: AppointmentWithRelations;
   onCancel?: () => void;
+  onReschedule?: () => void;
 }) {
-  const canCancel =
-    onCancel &&
+  const isActionable =
     appointment.startAt > new Date() &&
     (appointment.status === "SCHEDULED" || appointment.status === "CONFIRMED");
+  const canCancel = onCancel && isActionable;
+  const canReschedule = onReschedule && isActionable;
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -132,6 +146,11 @@ function AppointmentCard({
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge status={appointment.status} />
+          {canReschedule && (
+            <Button size="sm" variant="ghost" onClick={onReschedule}>
+              Remarcar
+            </Button>
+          )}
           {canCancel && (
             <Button size="sm" variant="ghost" onClick={onCancel}>
               Cancelar

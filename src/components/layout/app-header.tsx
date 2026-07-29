@@ -1,6 +1,8 @@
 "use client";
 
-import { Menu, LogOut } from "lucide-react";
+import { useSyncExternalStore } from "react";
+import { Menu, LogOut, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import { formatDate } from "@/lib/utils/date";
@@ -9,6 +11,40 @@ type AppHeaderProps = {
   title: string;
   onMenuClick?: () => void;
 };
+
+// next-themes só sabe o tema real depois de montar no cliente; renderizar
+// direto no servidor causaria mismatch de hidratação. useSyncExternalStore
+// resolve isso sem precisar de setState dentro de um effect.
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useIsMounted();
+
+  if (!mounted) {
+    return <div className="touch-target h-9 w-9 shrink-0" />;
+  }
+
+  const isDark = resolvedTheme === "dark";
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="touch-target shrink-0"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+    >
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 export function AppHeader({ title, onMenuClick }: AppHeaderProps) {
   return (
@@ -31,6 +67,7 @@ export function AppHeader({ title, onMenuClick }: AppHeaderProps) {
         <span className="hidden text-sm text-muted-foreground md:block">
           {formatDate(new Date(), "EEEE, dd 'de' MMMM")}
         </span>
+        <ThemeToggle />
         <Button
           variant="ghost"
           size="sm"

@@ -39,6 +39,7 @@ export function ServiceForm({
       name: "",
       description: "",
       durationMin: 30,
+      bufferMin: 0,
       price: 0,
       active: true,
     },
@@ -70,7 +71,7 @@ export function ServiceForm({
               <Label htmlFor="name">Nome do serviço *</Label>
               <Input id="name" {...register("name")} />
               {errors.name && (
-                <p className="text-sm text-rose-600">{errors.name.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.name.message}</p>
               )}
             </div>
             <div className="space-y-2 sm:col-span-2">
@@ -81,14 +82,21 @@ export function ServiceForm({
               <Label htmlFor="durationMin">Duração (minutos) *</Label>
               <Input id="durationMin" type="number" min={5} {...register("durationMin", { valueAsNumber: true })} />
               {errors.durationMin && (
-                <p className="text-sm text-rose-600">{errors.durationMin.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.durationMin.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bufferMin">Intervalo após o atendimento (min)</Label>
+              <Input id="bufferMin" type="number" min={0} max={180} {...register("bufferMin", { valueAsNumber: true })} />
+              {errors.bufferMin && (
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.bufferMin.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="price">Preço (R$) *</Label>
               <Input id="price" type="number" step="0.01" min={0} {...register("price", { valueAsNumber: true })} />
               {errors.price && (
-                <p className="text-sm text-rose-600">{errors.price.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.price.message}</p>
               )}
             </div>
             {isEditing && (

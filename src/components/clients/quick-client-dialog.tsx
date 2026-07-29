@@ -84,7 +84,7 @@ export function QuickClientDialog({
             <Label htmlFor="quick-client-name">Nome *</Label>
             <Input id="quick-client-name" autoFocus {...register("name")} />
             {errors.name && (
-              <p className="text-sm text-rose-600">{errors.name.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.name.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -95,7 +95,7 @@ export function QuickClientDialog({
               {...register("phone")}
             />
             {errors.phone && (
-              <p className="text-sm text-rose-600">{errors.phone.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.phone.message}</p>
             )}
           </div>
           <DialogFooter>

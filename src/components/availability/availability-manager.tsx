@@ -160,7 +160,7 @@ export function AvailabilityManager({
                 )}
               />
               {errors.professionalId && (
-                <p className="text-sm text-rose-600">{errors.professionalId.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.professionalId.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -192,7 +192,7 @@ export function AvailabilityManager({
               <Label htmlFor="endTime">Fim *</Label>
               <Input id="endTime" type="time" {...register("endTime")} />
               {errors.endTime && (
-                <p className="text-sm text-rose-600">{errors.endTime.message}</p>
+                <p className="text-sm text-rose-600 dark:text-rose-400">{errors.endTime.message}</p>
               )}
             </div>
             <div className="flex items-end sm:col-span-2 lg:col-span-5">
@@ -271,7 +271,7 @@ export function AvailabilityManager({
                       size="icon"
                       onClick={() => setDeleteId(item.id)}
                     >
-                      <Trash2 className="h-4 w-4 text-rose-600" />
+                      <Trash2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                     </Button>
                   </div>
                 </div>

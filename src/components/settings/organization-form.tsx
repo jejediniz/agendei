@@ -64,7 +64,7 @@ export function OrganizationForm({ defaultValues }: OrganizationFormProps) {
             <Label htmlFor="name">Nome do negócio *</Label>
             <Input id="name" {...register("name")} />
             {errors.name && (
-              <p className="text-sm text-rose-600">{errors.name.message}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errors.name.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -100,6 +100,31 @@ export function OrganizationForm({ defaultValues }: OrganizationFormProps) {
               <Label htmlFor="orgEmail">E-mail do negócio</Label>
               <Input id="orgEmail" type="email" {...register("email")} />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Granularidade da agenda</Label>
+            <Controller
+              name="slotIntervalMin"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={String(field.value)}
+                  onValueChange={(v) => field.onChange(Number(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutos</SelectItem>
+                    <SelectItem value="30">30 minutos</SelectItem>
+                    <SelectItem value="60">60 minutos</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-xs text-muted-foreground">
+              Intervalo entre os horários oferecidos na agenda pública.
+            </p>
           </div>
           <Button type="submit" disabled={loading}>
             {loading ? "Salvando..." : "Salvar alterações"}

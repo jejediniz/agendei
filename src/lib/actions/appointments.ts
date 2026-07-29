@@ -11,7 +11,7 @@ import {
   appointmentSchema,
   appointmentStatusSchema,
 } from "@/lib/validations/appointment";
-import { BLOCKING_STATUSES } from "@/lib/utils/appointments";
+import { BLOCKING_STATUSES, runWithOverlapGuard } from "@/lib/utils/appointments";
 import type { ActionResult } from "./clients";
 
 export async function getAvailableSlots(
@@ -114,10 +114,15 @@ export async function updateAppointmentStatus(
     }
   }
 
-  await prisma.appointment.update({
-    where: { id },
-    data: { status: parsedStatus.data },
-  });
+  const result = await runWithOverlapGuard(() =>
+    prisma.appointment.update({
+      where: { id },
+      data: { status: parsedStatus.data },
+    }),
+  );
+  if (!result.success) {
+    return { success: false, error: "Conflito de horário detectado." };
+  }
 
   revalidatePath("/agendamentos");
   revalidatePath("/agenda");
