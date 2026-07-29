@@ -6,6 +6,7 @@ import { getProfessionals } from "@/lib/queries/professionals";
 import { getAvailabilitiesByProfessional } from "@/lib/queries/availability";
 import { PageHeader } from "@/components/layout/page-header";
 import { AgendaView } from "@/components/agenda/agenda-view";
+import { AgendaSectionTabs } from "@/components/agenda/agenda-section-tabs";
 
 type PageProps = {
   searchParams: Promise<{ data?: string; profissional?: string }>;
@@ -28,8 +29,11 @@ export default async function AgendaPage({ searchParams }: PageProps) {
     <div className="space-y-4">
       <PageHeader
         title="Agenda"
-        description="Visão do dia por profissional — toque em um horário para ver na lista"
+        description="Visão do dia por profissional — toque em um horário para ver os detalhes"
+        actionLabel="Novo agendamento"
+        actionHref="/agendamentos/novo"
       />
+      <AgendaSectionTabs />
       <Suspense>
         <AgendaView
           professionals={professionals}

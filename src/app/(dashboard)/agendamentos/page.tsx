@@ -4,6 +4,7 @@ import { requireSessionContext } from "@/lib/tenant/context";
 import { getAppointments } from "@/lib/queries/appointments";
 import { getProfessionals } from "@/lib/queries/professionals";
 import { PageHeader } from "@/components/layout/page-header";
+import { AgendaSectionTabs } from "@/components/agenda/agenda-section-tabs";
 import { AppointmentFilters } from "@/components/appointments/appointment-filters";
 import { AppointmentTable } from "@/components/appointments/appointment-table";
 
@@ -28,13 +29,14 @@ export default async function AgendamentosPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
-        title="Agendamentos"
-        description="Visualize, confirme e acompanhe todos os agendamentos"
+        title="Agenda"
+        description="Lista completa — visualize, confirme e acompanhe todos os agendamentos"
         actionLabel="Novo agendamento"
         actionHref="/agendamentos/novo"
       />
+      <AgendaSectionTabs />
       <Suspense>
         <AppointmentFilters professionals={professionals} />
       </Suspense>

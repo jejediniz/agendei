@@ -242,6 +242,7 @@ Cada fase termina com: `lint` + typecheck (`tsc --noEmit`) + `build` verdes, rev
 | 2026-07-28 | — | Branch criada; diagnóstico; este documento. | docs |
 | 2026-07-28 | 0 | Script `typecheck`; correção do bug de timezone em `generateAvailableSlots` (agora usa `minutesFromDateInTimezone`); correção do erro de lint em `login-form` (setState fora do effect). Build/lint/typecheck verdes. | fix |
 | 2026-07-28 | 1 | Nova identidade visual via tokens (`globals.css`): base neutra fria + primária teal-petróleo + acento esmeralda; gradientes globais removidos; cores de status harmonizadas (Confirmado→teal, Cancelado→slate). Sem tocar em componentes (re-skin por token). Build/lint/typecheck verdes. | feat |
+| 2026-07-28 | 2 | Navegação reorganizada em grupos (Visão geral · Operação · Cadastros · Análise · Configurações); Agenda vira hub com abas Calendário/Lista (`AgendaSectionTabs`); "Agendamentos" e "Horários" saem do topo (Horários → Configurações); nova página **Relatórios** com indicadores reais de 30 dias (`queries/reports.ts`); dashboard enxuto e focado no dia com atalhos. Build/lint/typecheck verdes. | feat |
 
 ### Pendências de aprovação (não executadas)
 
