@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { requireSessionContext } from "@/lib/tenant/context";
 import { getClients } from "@/lib/queries/clients";
-import { getProfessionals } from "@/lib/queries/professionals";
+import {
+  getProfessionals,
+  getProfessionalServiceMap,
+} from "@/lib/queries/professionals";
 import { getServices } from "@/lib/queries/services";
 import { PageHeader } from "@/components/layout/page-header";
 import { AppointmentForm } from "@/components/appointments/appointment-form";
@@ -20,11 +23,13 @@ type PageProps = {
 export default async function NovoAgendamentoPage({ searchParams }: PageProps) {
   const ctx = await requireSessionContext();
   const params = await searchParams;
-  const [clients, professionals, services] = await Promise.all([
-    getClients(ctx.organizationId),
-    getProfessionals(ctx.organizationId, true),
-    getServices(ctx.organizationId, true),
-  ]);
+  const [clients, professionals, services, professionalServiceMap] =
+    await Promise.all([
+      getClients(ctx.organizationId),
+      getProfessionals(ctx.organizationId, true),
+      getServices(ctx.organizationId, true),
+      getProfessionalServiceMap(ctx.organizationId),
+    ]);
 
   const missing: { label: string; href: string; icon: typeof Users }[] = [];
   if (services.length === 0) {
@@ -64,6 +69,7 @@ export default async function NovoAgendamentoPage({ searchParams }: PageProps) {
           clients={clients}
           professionals={professionals}
           services={services}
+          professionalServiceMap={professionalServiceMap}
           initialDate={params.data}
           initialProfessionalId={params.profissional}
           initialTime={params.hora}

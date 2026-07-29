@@ -39,6 +39,28 @@ export async function createAppointmentForOrganization(
     return { success: false, error: "Dados inválidos para agendamento." };
   }
 
+  // Profissional com vínculos só atende os serviços vinculados
+  // (sem vínculos = atende todos, retrocompatível).
+  const serviceLinkCount = await prisma.professionalService.count({
+    where: { professionalId: data.professionalId },
+  });
+  if (serviceLinkCount > 0) {
+    const offersService = await prisma.professionalService.findUnique({
+      where: {
+        professionalId_serviceId: {
+          professionalId: data.professionalId,
+          serviceId: data.serviceId,
+        },
+      },
+    });
+    if (!offersService) {
+      return {
+        success: false,
+        error: "Este profissional não realiza o serviço selecionado.",
+      };
+    }
+  }
+
   const startAt = combineDateAndTime(data.date, data.time);
   const endAt = calculateEndAt(startAt, service.durationMin);
 

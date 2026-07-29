@@ -33,6 +33,20 @@ export async function fetchAvailableSlots(
     return { slots: [], error: "Profissional não encontrado." };
   }
 
+  // Profissional com vínculos só atende os serviços vinculados
+  // (sem vínculos = atende todos, retrocompatível).
+  const serviceLinkCount = await prisma.professionalService.count({
+    where: { professionalId },
+  });
+  if (serviceLinkCount > 0) {
+    const offersService = await prisma.professionalService.findUnique({
+      where: { professionalId_serviceId: { professionalId, serviceId } },
+    });
+    if (!offersService) {
+      return { slots: [], error: "Profissional não realiza este serviço." };
+    }
+  }
+
   const dayOfWeek = getDayOfWeek(combineDateAndTime(date, "12:00"));
   const availabilities = await prisma.availability.findMany({
     where: { professionalId, dayOfWeek, active: true },

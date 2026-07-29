@@ -10,21 +10,26 @@ import {
   type ProfessionalFormData,
 } from "@/lib/validations/professional";
 import { createProfessional, updateProfessional } from "@/lib/actions/professionals";
+import type { SerializableService } from "@/lib/queries/services";
+import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils/cn";
 
 type ProfessionalFormProps = {
   defaultValues?: ProfessionalFormData;
   professionalId?: string;
   redirectTo?: string;
+  services?: SerializableService[];
 };
 
 export function ProfessionalForm({
   defaultValues,
   professionalId,
   redirectTo = "/profissionais",
+  services = [],
 }: ProfessionalFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -43,6 +48,7 @@ export function ProfessionalForm({
       email: "",
       specialty: "",
       active: true,
+      serviceIds: [],
     },
   });
 
@@ -106,6 +112,66 @@ export function ProfessionalForm({
               </div>
             )}
           </div>
+
+          {services.length > 0 && (
+            <div className="space-y-2">
+              <Label>Serviços que realiza</Label>
+              <p className="text-xs text-muted-foreground">
+                Deixe sem seleção para que o profissional atenda todos os
+                serviços.
+              </p>
+              <Controller
+                name="serviceIds"
+                control={control}
+                render={({ field }) => {
+                  const selected = field.value ?? [];
+                  return (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {services.map((service) => {
+                        const checked = selected.includes(service.id);
+                        return (
+                          <label
+                            key={service.id}
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm transition-colors",
+                              checked
+                                ? "border-primary/40 bg-primary-light/40"
+                                : "border-border bg-card hover:bg-muted/50",
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  field.onChange([...selected, service.id]);
+                                } else {
+                                  field.onChange(
+                                    selected.filter((id) => id !== service.id),
+                                  );
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-border text-primary"
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-medium text-foreground">
+                                {service.name}
+                              </span>
+                              <span className="block text-xs text-muted-foreground">
+                                {service.durationMin} min ·{" "}
+                                {formatCurrency(service.price)}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          )}
+
           <div className="flex gap-3 pt-2">
             <Button type="submit" disabled={loading}>
               {loading ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar profissional"}

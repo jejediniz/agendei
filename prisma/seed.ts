@@ -144,6 +144,20 @@ async function main() {
   const [corteFem, corteMasc, escova, coloracao, manicure, barba] = services;
   const [juliana, roberto, patricia] = professionals;
 
+  // Vínculos profissional↔serviço (cada um realiza seu conjunto).
+  const professionalServiceLinks: Array<
+    [(typeof professionals)[number], (typeof services)[number][]]
+  > = [
+    [juliana, [corteFem, escova, coloracao]],
+    [roberto, [corteMasc, barba]],
+    [patricia, [manicure]],
+  ];
+  for (const [prof, svcs] of professionalServiceLinks) {
+    await prisma.professionalService.createMany({
+      data: svcs.map((svc) => ({ professionalId: prof.id, serviceId: svc.id })),
+    });
+  }
+
   const weekdays = [
     DayOfWeek.MONDAY,
     DayOfWeek.TUESDAY,
