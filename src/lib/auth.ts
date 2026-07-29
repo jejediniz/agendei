@@ -339,8 +339,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         applySessionToToken(token, user as SessionUserPayload);
       }
 
-      if (trigger === "update" && token.id) {
-        const fresh = await loadUserSessionData(token.id as string);
+      // Só consulta o banco no trigger "update" (POST /api/auth/session no Node).
+      // Nunca no Edge/middleware — Prisma quebra a sessão (JWTSessionError).
+      const userId = (token.id ?? token.sub) as string | undefined;
+      if (trigger === "update" && userId) {
+        const fresh = await loadUserSessionData(userId);
         if (fresh) {
           applySessionToToken(token, fresh);
         }

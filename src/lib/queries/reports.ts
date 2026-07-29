@@ -10,6 +10,7 @@ export type ReportsData = {
   totalAppointments: number;
   completed: number;
   cancelled: number;
+  noShow: number;
   upcoming: number;
   revenueRealized: number;
   revenueProjected: number;
@@ -47,6 +48,7 @@ export async function getReportsData(
 
   let completed = 0;
   let cancelled = 0;
+  let noShow = 0;
   let upcoming = 0;
   let revenueRealized = 0;
   let revenueProjected = 0;
@@ -63,15 +65,22 @@ export async function getReportsData(
         break;
       case AppointmentStatus.SCHEDULED:
       case AppointmentStatus.CONFIRMED:
+      case AppointmentStatus.IN_PROGRESS:
         upcoming++;
         revenueProjected += price;
         break;
       case AppointmentStatus.CANCELLED:
         cancelled++;
         break;
+      case AppointmentStatus.NO_SHOW:
+        noShow++;
+        break;
     }
 
-    if (apt.status !== AppointmentStatus.CANCELLED) {
+    if (
+      apt.status !== AppointmentStatus.CANCELLED &&
+      apt.status !== AppointmentStatus.NO_SHOW
+    ) {
       const entry = serviceCounts.get(apt.serviceId) ?? {
         name: apt.service.name,
         count: 0,
@@ -90,6 +99,7 @@ export async function getReportsData(
     totalAppointments: appointments.length,
     completed,
     cancelled,
+    noShow,
     upcoming,
     revenueRealized,
     revenueProjected,

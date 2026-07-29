@@ -2,6 +2,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   XCircle,
+  UserX,
   Wallet,
   Users,
   UserCog,
@@ -32,7 +33,7 @@ export default async function RelatoriosPage() {
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
           Atendimentos e faturamento
         </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <StatCard
             compact
             title={`Atendimentos (${data.periodDays}d)`}
@@ -50,6 +51,12 @@ export default async function RelatoriosPage() {
             title="Cancelados"
             value={data.cancelled}
             icon={XCircle}
+          />
+          <StatCard
+            compact
+            title="Não compareceu"
+            value={data.noShow}
+            icon={UserX}
           />
           <StatCard
             compact

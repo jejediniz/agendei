@@ -6,7 +6,11 @@ import {
   minutesToTime,
 } from "./date";
 
-export const BLOCKING_STATUSES: AppointmentStatus[] = ["SCHEDULED", "CONFIRMED"];
+export const BLOCKING_STATUSES: AppointmentStatus[] = [
+  "SCHEDULED",
+  "CONFIRMED",
+  "IN_PROGRESS",
+];
 
 export function hasOverlap(
   startA: Date,

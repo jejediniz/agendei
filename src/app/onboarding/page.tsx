@@ -6,6 +6,7 @@ import { getAvailabilitiesByProfessional } from "@/lib/queries/availability";
 import { getPrimaryMembershipForSession } from "@/lib/queries/membership";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { OrganizationSetupForm } from "@/components/onboarding/organization-setup-form";
+import { PostOnboardingRedirect } from "@/components/onboarding/post-onboarding-redirect";
 
 export default async function OnboardingPage() {
   const session = await auth();
@@ -32,18 +33,25 @@ export default async function OnboardingPage() {
   const organizationId = membership.organizationId;
   const org = membership.organization;
 
+  // Banco é a fonte da verdade: se já concluiu, sincroniza JWT e vai ao dashboard.
+  if (org.onboardingCompletedAt) {
+    return (
+      <div className="min-h-screen bg-background p-4 py-12 lg:p-8">
+        <div className="mb-8 text-center">
+          <h1 className="font-display text-2xl font-semibold text-primary">
+            Agendei
+          </h1>
+        </div>
+        <PostOnboardingRedirect />
+      </div>
+    );
+  }
+
   const [services, professionals, availabilities] = await Promise.all([
     getServices(organizationId),
     getProfessionals(organizationId),
     getAvailabilitiesByProfessional(organizationId),
   ]);
-
-  // Se já estiver concluído no banco, não faz sentido ficar preso no onboarding.
-  // Usamos `onboardingCompletedAt` (e não só `onboardingStep`) para reduzir loops
-  // quando a sessão/token ainda estiver "stale".
-  if (org.onboardingCompletedAt) {
-    redirect("/");
-  }
 
   return (
     <div className="min-h-screen bg-background p-4 py-12 lg:p-8">

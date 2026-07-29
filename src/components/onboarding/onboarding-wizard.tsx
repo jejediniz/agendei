@@ -109,7 +109,10 @@ export function OnboardingWizard({
             <p className="text-sm text-muted-foreground">
               Seu negócio já está pronto. Vamos te levar ao dashboard.
             </p>
-            <Button onClick={() => router.push("/")} disabled={loading}>
+            <Button
+              onClick={() => syncSessionAndNavigate(update, "/")}
+              disabled={loading}
+            >
               Ir para o dashboard
             </Button>
           </CardContent>

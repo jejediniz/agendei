@@ -180,7 +180,7 @@ async function main() {
   const rows: Row[] = [
     // HOJE — agenda povoada com status variados
     [juliana, corteFem, clients[0], 0, 9, 0, AppointmentStatus.COMPLETED],
-    [juliana, coloracao, clients[2], 0, 11, 0, AppointmentStatus.CONFIRMED],
+    [juliana, coloracao, clients[2], 0, 11, 0, AppointmentStatus.IN_PROGRESS],
     [juliana, escova, clients[4], 0, 15, 0, AppointmentStatus.SCHEDULED],
     [roberto, corteMasc, clients[1], 0, 10, 0, AppointmentStatus.COMPLETED],
     [roberto, barba, clients[3], 0, 14, 0, AppointmentStatus.CONFIRMED],
@@ -216,11 +216,14 @@ async function main() {
     const [profB, svcB] = rotation[(dayAgo + 2) % rotation.length];
     const clientA = clients[dayAgo % clients.length];
     const clientB = clients[(dayAgo + 3) % clients.length];
-    // 1 cancelamento a cada 6 dias; o resto concluído.
+    // Variedade: cancelamento a cada 6 dias, não comparecimento a cada 7,
+    // o restante concluído.
     const statusA =
       dayAgo % 6 === 0
         ? AppointmentStatus.CANCELLED
-        : AppointmentStatus.COMPLETED;
+        : dayAgo % 7 === 0
+          ? AppointmentStatus.NO_SHOW
+          : AppointmentStatus.COMPLETED;
     rows.push([profA, svcA, clientA, -dayAgo, 10, 0, statusA]);
     if (profB !== profA) {
       rows.push([
