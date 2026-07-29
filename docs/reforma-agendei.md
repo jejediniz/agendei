@@ -248,6 +248,14 @@ Cada fase termina com: `lint` + typecheck (`tsc --noEmit`) + `build` verdes, rev
 | 2026-07-28 | 3b | Novos status **Em atendimento** (IN_PROGRESS) e **Não compareceu** (NO_SHOW) no enum (db push aditivo, sem perda de dados). Atualizados: cores/labels, `BLOCKING_STATUSES` (IN_PROGRESS bloqueia; NO_SHOW libera), transições válidas, botões do diálogo de detalhes, filtros, stats do dashboard e relatórios. Seed com exemplos dos novos status. Build/lint/typecheck verdes. | feat |
 | 2026-07-28 | 4 | **Vínculo Profissional↔Serviço** (tabela `ProfessionalService`, db push aditivo). Regra retrocompatível: profissional **sem** vínculos atende todos; **com** vínculos, só os selecionados. Cálculo de slots e criação de agendamento validam o vínculo; formulário de profissional ganha seleção de serviços; formulário de agendamento filtra profissionais pelo serviço; seed com vínculos. Build/lint/typecheck verdes. | feat |
 | 2026-07-28 | 5 | Fluxo público respeita o vínculo profissional↔serviço (só mostra quem realiza o serviço); passo final vira **revisão** com serviço, profissional, data/hora, duração, valor e política de cancelamento/contato. Cancelamento pelo cliente já existia. Build/lint/typecheck verdes. | feat |
+| 2026-07-28 | 6 | **Testes** com Vitest (14 casos) cobrindo regras de disponibilidade/conflito (`generateAvailableSlots`, `hasOverlap`, `appointmentsOverlap`) e utilidades de data/fuso (semana/mês/navegação); scripts `test`/`test:watch`. Corrigidos avisos de lint (imports não usados, `aria-pressed` no seletor de dia). Lint 0 erros / 4 avisos (padrões do React Hook Form). Build/typecheck/testes verdes. | test |
+
+### Ainda em aberto (não bloqueiam)
+
+- **Tema escuro:** exige varredura das cores utilitárias fixas; adiado.
+- **Concorrência de reserva:** proposta de exclusion constraint Postgres aguardando aprovação (transação atual já cobre carga típica).
+- **Buffer entre atendimentos:** não aprovado nesta rodada.
+- **Remarcação self-service:** hoje o cliente cancela e reagenda; remarcação em 1 passo fica como evolução.
 
 ### Pendências de aprovação (não executadas)
 
