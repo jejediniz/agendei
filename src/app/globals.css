@@ -1,25 +1,41 @@
 @import "tailwindcss";
 
+/*
+ * Design system Agendei — identidade "SaaS profissional, calma".
+ * Base neutra fria + primária teal-petróleo (marca/ações) + esmeralda
+ * (semântica de sucesso/confirmação). Os nomes dos tokens são estáveis:
+ * trocar apenas os valores aqui re-veste toda a aplicação.
+ * Tema escuro fica para a Fase 6 (Qualidade), quando faremos a varredura
+ * das cores utilitárias fixas (bg-amber-50, text-slate-600, etc.) espalhadas
+ * pelos componentes — ativá-lo agora deixaria a UI pela metade.
+ */
 :root {
-  --background: #f7f3ec;
-  --foreground: #292524;
-  --card: #fefcf9;
-  --card-foreground: #292524;
-  --primary: #b85c38;
-  --primary-hover: #9a4d2f;
-  --primary-dark: #7a3d26;
-  --primary-light: #f3e4dc;
+  /* Neutros */
+  --background: #f4f5f6;
+  --foreground: #1a1e23;
+  --card: #ffffff;
+  --card-foreground: #1a1e23;
+  --muted: #eef0f2;
+  --muted-foreground: #596068;
+  --border: #e2e5e9;
+  --surface: #fafbfb;
+
+  /* Primária — teal petróleo (marca e ações) */
+  --primary: #0e6e64;
+  --primary-hover: #0b5a52;
+  --primary-dark: #084139;
+  --primary-light: #d9edea;
   --primary-foreground: #ffffff;
-  --muted: #f0ebe3;
-  --muted-foreground: #6b6560;
-  --border: #e5ddd3;
-  --ring: #b85c38;
-  --surface: #faf6f0;
-  --accent: #5b7b6a;
-  --accent-light: #e4ede8;
-  --shadow-warm: 0 1px 2px rgba(41, 37, 36, 0.04), 0 2px 8px rgba(41, 37, 36, 0.03);
-  --shadow-warm-lg: 0 4px 20px rgba(41, 37, 36, 0.07);
-  --shadow-warm-md: 0 2px 12px rgba(41, 37, 36, 0.05);
+  --ring: #0e6e64;
+
+  /* Acento — esmeralda (sucesso / confirmado) */
+  --accent: #2f8f6b;
+  --accent-light: #dcefe6;
+
+  /* Sombras neutras discretas */
+  --shadow-warm: 0 1px 2px rgba(20, 25, 30, 0.04), 0 2px 8px rgba(20, 25, 30, 0.04);
+  --shadow-warm-md: 0 2px 12px rgba(20, 25, 30, 0.06);
+  --shadow-warm-lg: 0 4px 20px rgba(20, 25, 30, 0.08);
 }
 
 @theme inline {
@@ -47,17 +63,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
-  background-image:
-    radial-gradient(
-      ellipse 90% 60% at 50% -30%,
-      rgba(184, 92, 56, 0.07),
-      transparent
-    ),
-    radial-gradient(
-      ellipse 50% 40% at 100% 100%,
-      rgba(184, 92, 56, 0.03),
-      transparent
-    );
 }
 
 .font-display {
@@ -79,7 +84,7 @@ body {
 .pattern-dots {
   background-image: radial-gradient(
     circle,
-    rgba(184, 92, 56, 0.08) 1px,
+    rgba(14, 110, 100, 0.07) 1px,
     transparent 1px
   );
   background-size: 24px 24px;

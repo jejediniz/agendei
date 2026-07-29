@@ -182,11 +182,12 @@ P3 (acabamento): identidade visual consolidada, tema escuro, acessibilidade, per
 
 ---
 
-## 9. Decisões técnicas em aberto
+## 9. Decisões técnicas
 
-- **Identidade visual**: manter a paleta terracota (marca atual, acolhedora) **ou** migrar para um sistema mais neutro/"SaaS produtividade" (base ardósia/índigo, tipografia sem serifa no corpo)? → Decisão do produto antes da Fase 1.
-- Granularidade de slot: tornar configurável por serviço/organização (default 30 min).
-- Concorrência: constraint de exclusão Postgres (`btree_gist`) vs. transação serializável vs. advisory lock.
+- **Identidade visual (DECIDIDO — Jessica delegou):** paleta "SaaS profissional, calma". Base **neutra fria** (canvas `#f4f5f6`, cards brancos), primária **teal-petróleo `#0e6e64`** (marca/ações), acento **esmeralda `#2f8f6b`** (sucesso/confirmação). Tipografia mantida (Fraunces em títulos, DM Sans no corpo). Gradientes radiais globais **removidos**. Contraste do texto sobre a primária = 6.1:1 (AA/AAA). Motivo: transmite confiança e produtividade sem cair no "azul-SaaS genérico"; paleta análoga = coesa e calma.
+- Granularidade de slot: tornar configurável por serviço/organização (default 30 min). _(pendente — Fase 4)_
+- Concorrência: constraint de exclusão Postgres (`btree_gist`) vs. transação serializável vs. advisory lock. _(pendente aprovação)_
+- **Tema escuro:** adiado para a Fase 6 (exige varredura das cores utilitárias fixas nos componentes; ativar agora deixaria a UI pela metade).
 
 ---
 
@@ -240,6 +241,7 @@ Cada fase termina com: `lint` + typecheck (`tsc --noEmit`) + `build` verdes, rev
 |------|------|---------|--------|
 | 2026-07-28 | — | Branch criada; diagnóstico; este documento. | docs |
 | 2026-07-28 | 0 | Script `typecheck`; correção do bug de timezone em `generateAvailableSlots` (agora usa `minutesFromDateInTimezone`); correção do erro de lint em `login-form` (setState fora do effect). Build/lint/typecheck verdes. | fix |
+| 2026-07-28 | 1 | Nova identidade visual via tokens (`globals.css`): base neutra fria + primária teal-petróleo + acento esmeralda; gradientes globais removidos; cores de status harmonizadas (Confirmado→teal, Cancelado→slate). Sem tocar em componentes (re-skin por token). Build/lint/typecheck verdes. | feat |
 
 ### Pendências de aprovação (não executadas)
 
